@@ -71,7 +71,7 @@
     .pin.is-focused .pin-label{display:block}
     .route-path{fill:none;stroke:var(--cyan);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 rgba(255,255,255,.85));transition:all .3s ease;opacity:0}
     .map-stage.show-route .route-path{opacity:1}
-    .trip-route-layer{opacity:0;transition:opacity .25s ease}.map-stage.trip-overview .trip-route-layer{opacity:1}.trip-route{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 rgba(255,255,255,.95))}
+    .trip-route-layer{opacity:0;transition:opacity .25s ease}.map-stage.trip-overview .trip-route-layer{opacity:1}.curve-route-outline,.curve-route-main{fill:none;stroke-linecap:round;stroke-linejoin:round}.curve-route-outline{stroke:rgba(255,255,255,.98);stroke-width:11}.curve-route-main{stroke-width:6.5;filter:drop-shadow(0 2px 3px rgba(28,64,49,.14))}.route-outline-path{opacity:0}.map-stage.show-route .route-outline-path{opacity:1}.trip-route{stroke-width:6.5}
     .trip-legend{position:absolute;z-index:8;left:16px;right:16px;bottom:12px;display:none;grid-template-columns:repeat(4,1fr);gap:5px;transition:opacity .2s ease}.trip-legend.show{display:grid}.trip-legend button{min-width:0;display:flex;align-items:center;gap:5px;padding:7px 6px;background:rgba(255,255,255,.96);border:1px solid rgba(20,45,55,.06);border-radius:11px;box-shadow:0 5px 14px rgba(31,56,45,.11);text-align:left;backdrop-filter:blur(12px)}.trip-legend button:active{transform:scale(.975)}.trip-legend i{width:5px;height:25px;border-radius:8px;background:var(--day-color);flex:0 0 auto}.trip-legend b{display:block;font-size:9px;line-height:1}.trip-legend span{display:block;margin-top:3px;font-size:7px;color:#6d7773;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .fallback-region{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.96);border:1px solid rgba(25,50,42,.07);border-radius:14px;padding:7px 10px 7px 7px;box-shadow:0 7px 18px rgba(32,62,49,.14);font-size:9px;font-weight:850;white-space:nowrap}.fallback-region.label-left{transform:translate(-100%,-50%)}.fallback-region.label-right{transform:translate(0,-50%)}.fallback-region strong{width:34px;height:28px;border-radius:10px;display:grid;place-items:center;background:var(--day-color);color:white;font-size:9px}.fallback-region.shared strong{background:linear-gradient(135deg,var(--day1) 0 49%,var(--day4) 51%)}
     .map-controls{position:absolute;z-index:8;right:15px;top:118px;width:38px;background:rgba(255,255,255,.96);border-radius:15px;box-shadow:0 6px 18px rgba(33,65,48,.12);overflow:hidden}
@@ -184,7 +184,8 @@
             <path d="M55 20 C110 90 95 140 160 165 S275 220 345 410" fill="none" stroke="#f8fff6" stroke-width="8"/>
             <path d="M15 130 C90 165 150 90 230 130 S340 250 425 230" fill="none" stroke="#d5e9d1" stroke-width="4" stroke-dasharray="7 7"/>
             <g id="tripRouteLayer" class="trip-route-layer"></g>
-            <path id="routePath" class="route-path" d=""/>
+            <path id="routeOutlinePath" class="route-outline-path curve-route-outline" d=""/>
+            <path id="routePath" class="route-path curve-route-main" d=""/>
           </svg>
           <div class="pin-layer" id="pinLayer"></div>
         </div>
@@ -253,6 +254,7 @@
     const mapLegend=document.getElementById('mapLegend');
     const tripLegend=document.getElementById('tripLegend');
     const tripRouteLayer=document.getElementById('tripRouteLayer');
+    const routeOutlinePath=document.getElementById('routeOutlinePath');
     const routePath=document.getElementById('routePath');
     const progressBar=document.getElementById('progressBar');
     const mapView={scale:1,x:0,y:0};
@@ -261,7 +263,8 @@
     const DEFAULT_AMAP_CONFIG={key:'6258a4013208ccd222434f98df92e67b',securityJsCode:'c74b7e3a4748abf69aea1edbd463a067'};
     const markerLabelSide={heshun:'left',resea:'left',wetland:'right',volcano:'top',memorial:'left',waterfall:'right',ginkgo:'right'};
     const markerPixelOffset={heshun:[-26,20],memorial:[18,-13],waterfall:[18,8]};
-    const amapState={AMap:null,map:null,markers:[],polylines:[],ready:false,loading:false,lastSignature:''};
+    const amapState={AMap:null,map:null,markers:[],polylines:[],ready:false,loading:false,lastSignature:'',driving:null,drivingCache:new Map()};
+    const routeStatus={key:'',mode:'idle'};
     let mapGesture={startX:0,startY:0,originX:0,originY:0,distance:0,scale:1,moved:false};
     let sheetHeight=45;
     let sheetDrag=null;
@@ -332,6 +335,78 @@
       amapState.ready=false;amapState.loading=false;mapStage.classList.remove('amap-ready');mapProvider.className='map-provider error';mapProvider.textContent='高德地图 · 重试';mapHint.classList.remove('hide');
       if(message)showSnack(message,false);
     }
+    function buildLngLatCurve(routeIds,samples=10){
+      const points=routeIds.map(id=>spots.find(spot=>spot.id===id)).filter(Boolean).map(spot=>spot.lnglat);
+      if(points.length<2)return [];
+      const path=[points[0]];
+      for(let i=0;i<points.length-1;i++){
+        const p0=points[Math.max(0,i-1)],p1=points[i],p2=points[i+1],p3=points[Math.min(points.length-1,i+2)];
+        const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6];
+        const c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+        for(let step=1;step<=samples;step++){
+          const t=step/samples,u=1-t;
+          path.push([
+            u*u*u*p1[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*p2[0],
+            u*u*u*p1[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*p2[1]
+          ]);
+        }
+      }
+      return path;
+    }
+    function parseDrivingRoute(route){
+      const path=[];
+      if(!route)return path;
+      (route.steps||[]).forEach(step=>(step.path||[]).forEach(point=>{
+        const lng=typeof point.getLng==='function'?point.getLng():point.lng;
+        const lat=typeof point.getLat==='function'?point.getLat():point.lat;
+        if(Number.isFinite(lng)&&Number.isFinite(lat))path.push([lng,lat]);
+      }));
+      return path;
+    }
+    function getDrivingRequestKey(dayIndex,routeIds){
+      return `day:${dayIndex}|${routeIds.join('>')}|deleted:${state.deleted?'1':'0'}`;
+    }
+    function createAmapRoute(path,color,dashed=false){
+      return new amapState.AMap.Polyline({path,strokeColor:color,strokeOpacity:.98,strokeWeight:6,isOutline:true,outlineColor:'rgba(255,255,255,.98)',borderWeight:4,showDir:true,strokeStyle:dashed?'dashed':'solid',lineJoin:'round',lineCap:'round',zIndex:90});
+    }
+    function updateRouteLegendStatus(){
+      if(state.screen!=='detail'||state.mapMode!=='day')return;
+      const routeIds=getRouteIds();
+      const status=routeIds.length<2?'单一区域':routeStatus.mode==='road'?'高德道路路线':routeStatus.mode==='loading'?'道路路线计算中':'路线示意';
+      mapLegend.innerHTML=`<span class="legend-chip" style="border-left:4px solid ${dayMap[state.day].color}">D${state.day+1} · ${status}</span>`;
+    }
+    function replaceDailyRoute(path,color,requestKey){
+      if(routeStatus.key!==requestKey||state.screen!=='detail'||state.mapMode!=='day')return;
+      if(amapState.polylines.length)amapState.map.remove(amapState.polylines);
+      amapState.polylines=[createAmapRoute(path,color)];
+      amapState.map.add(amapState.polylines);
+      requestAnimationFrame(fitAmapView);
+    }
+    async function loadDrivingRoute(dayIndex,routeIds,requestKey){
+      if(!amapState.ready||!amapState.AMap||routeIds.length<2)return;
+      const cached=amapState.drivingCache.get(requestKey);
+      if(cached){
+        if(routeStatus.key!==requestKey)return;
+        replaceDailyRoute(cached,dayMap[dayIndex].color,requestKey);routeStatus.mode='road';updateRouteLegendStatus();return;
+      }
+      try{
+        if(!amapState.driving)amapState.driving=new amapState.AMap.Driving({policy:0,hideMarkers:true,showTraffic:false});
+        const routeSpots=routeIds.map(id=>spots.find(spot=>spot.id===id)).filter(Boolean);
+        if(routeSpots.length<2)return;
+        const toLngLat=spot=>new amapState.AMap.LngLat(spot.lnglat[0],spot.lnglat[1]);
+        const start=toLngLat(routeSpots[0]),end=toLngLat(routeSpots[routeSpots.length-1]);
+        const waypoints=routeSpots.slice(1,-1).map(toLngLat);
+        const driving=amapState.driving;
+        driving.search(start,end,{waypoints},(status,result)=>{
+          if(routeStatus.key!==requestKey||state.screen!=='detail'||state.mapMode!=='day'||state.day!==dayIndex)return;
+          const path=status==='complete'?parseDrivingRoute(result?.routes?.[0]):[];
+          if(path.length>1){
+            amapState.drivingCache.set(requestKey,path);replaceDailyRoute(path,dayMap[dayIndex].color,requestKey);routeStatus.mode='road';
+          }else routeStatus.mode='curve';
+          updateRouteLegendStatus();
+        });
+      }catch(error){if(routeStatus.key===requestKey){routeStatus.mode='curve';updateRouteLegendStatus()}console.warn('[圆周旅记] 道路算路失败，保留曲线示意',error)}
+    }
     function fitAmapView(){
       if(!amapState.ready||!amapState.map)return;
       const overlays=[...amapState.markers,...amapState.polylines];
@@ -349,6 +424,7 @@
       const old=[...amapState.markers,...amapState.polylines];if(old.length)amapState.map.remove(old);
       amapState.markers=[];amapState.polylines=[];
       if(showTrip){
+        routeStatus.key='';routeStatus.mode='idle';
         amapState.markers=tripRegionMarkers.map(region=>{
           const content=document.createElement('button');content.type='button';content.className=`trip-region-item label-${region.side} ${region.shared?'shared':''}`;content.style.setProperty('--day-color',dayMap[region.days[0]].color);content.setAttribute('aria-label',`${region.badge} ${region.label}`);
           content.innerHTML=`<span class="trip-region-marker">${region.badge}</span><span class="trip-region-label"><b>${region.label}</b><span>${region.note}</span></span>`;
@@ -357,8 +433,8 @@
           return new amapState.AMap.Marker({position:region.lnglat,content,anchor:'center',offset:new amapState.AMap.Pixel(offset[0],offset[1]),title:region.label,zIndex:170});
         });
         dayMap.filter(day=>day.route.length>1).forEach(day=>{
-          const path=day.route.filter(id=>!(state.deleted&&id==='wetland')).map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(s=>s.lnglat);
-          if(path.length>1)amapState.polylines.push(new amapState.AMap.Polyline({path,strokeColor:day.color,strokeOpacity:.95,strokeWeight:6,isOutline:true,outlineColor:'rgba(255,255,255,.98)',borderWeight:4,showDir:true,lineJoin:'round',lineCap:'round',zIndex:90}));
+          const path=buildLngLatCurve(day.route.filter(id=>!(state.deleted&&id==='wetland')));
+          if(path.length>1)amapState.polylines.push(createAmapRoute(path,day.color));
         });
       }else{
       amapState.markers=visible.map((s,i)=>{
@@ -372,14 +448,20 @@
         return new amapState.AMap.Marker({position:s.lnglat,content,anchor:'center',offset:new amapState.AMap.Pixel(offset[0],offset[1]),title:s.name,zIndex:routeIndex===0?170:(routeIndex>=0?150:(state.must.has(s.id)?140:110))});
       });
       if(showRoute){
-        const path=routeIds.map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(s=>s.lnglat);
+        const isDaily=state.screen==='detail'&&state.mapMode==='day';
+        const path=isDaily?buildLngLatCurve(routeIds):routeIds.map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(s=>s.lnglat);
         const strokeColor=state.screen==='detail'?dayMap[state.day].color:'#0ea9df';
-        amapState.polylines.push(new amapState.AMap.Polyline({path,strokeColor,strokeOpacity:.98,strokeWeight:5,isOutline:true,outlineColor:'rgba(255,255,255,.98)',borderWeight:4,showDir:true,strokeStyle:(state.screen==='routes'&&state.route==='theme')?'dashed':'solid',lineJoin:'round',lineCap:'round',zIndex:90}));
+        amapState.polylines.push(createAmapRoute(path,strokeColor,state.screen==='routes'&&state.route==='theme'));
+        if(isDaily){routeStatus.key=getDrivingRequestKey(state.day,routeIds);routeStatus.mode='loading'}
+      }else if(!showTrip){
+        routeStatus.key='';routeStatus.mode='idle';
       }
       }
       if(amapState.markers.length)amapState.map.add(amapState.markers);
       if(amapState.polylines.length)amapState.map.add(amapState.polylines);
       amapState.lastSignature=signature;
+      if(state.screen==='detail'&&state.mapMode==='day'&&routeIds.length>1){updateRouteLegendStatus();loadDrivingRoute(state.day,routeIds,routeStatus.key)}
+      else updateRouteLegendStatus();
       requestAnimationFrame(fitAmapView);
     }
     async function initAmap(config){
@@ -388,7 +470,7 @@
       try{
         window._AMapSecurityConfig={securityJsCode:config.securityJsCode};
         await loadExternalScript('https://webapi.amap.com/loader.js','amap-jsapi-loader');
-        const AMap=await window.AMapLoader.load({key:config.key,version:'2.0',plugins:['AMap.Scale']});
+        const AMap=await window.AMapLoader.load({key:config.key,version:'2.0',plugins:['AMap.Scale','AMap.Driving']});
         amapState.AMap=AMap;amapState.map=new AMap.Map('amapContainer',{viewMode:'2D',center:[98.50,25.09],zoom:10.2,zooms:[8.5,18],resizeEnable:true,showLabel:false,features:['bg','road','building'],mapStyle:'amap://styles/whitesmoke'});
         amapState.map.addControl(new AMap.Scale({position:'LB'}));amapState.ready=true;amapState.loading=false;amapState.lastSignature='';mapStage.classList.add('amap-ready');mapProvider.className='map-provider connected';mapProvider.textContent='高德地图 · 已连接';mapHint.classList.add('hide');
         syncAmapOverlays(true);setTimeout(()=>{amapState.map.resize();fitAmapView()},120);
@@ -412,6 +494,20 @@
     }
     function mapPoint(spot){
       return {x:14+((spot.x-24)/53)*64,y:38+((spot.y-20)/58)*35};
+    }
+    function buildCurvePath(routeIds){
+      if(routeIds.length<2)return '';
+      const points=routeIds.map(id=>spots.find(spot=>spot.id===id)).filter(Boolean).map(mapPoint).map(point=>({x:point.x*4.2,y:point.y*4.2}));
+      if(points.length<2)return '';
+      const fmt=value=>Math.round(value*10)/10;
+      let path=`M ${fmt(points[0].x)} ${fmt(points[0].y)}`;
+      for(let i=0;i<points.length-1;i++){
+        const p0=points[Math.max(0,i-1)],p1=points[i],p2=points[i+1],p3=points[Math.min(points.length-1,i+2)];
+        const c1={x:p1.x+(p2.x-p0.x)/6,y:p1.y+(p2.y-p0.y)/6};
+        const c2={x:p2.x-(p3.x-p1.x)/6,y:p2.y-(p3.y-p1.y)/6};
+        path+=` C ${fmt(c1.x)} ${fmt(c1.y)} ${fmt(c2.x)} ${fmt(c2.y)} ${fmt(p2.x)} ${fmt(p2.y)}`;
+      }
+      return path;
     }
     function applyMapTransform(){
       mapCanvas.style.transform=`translate3d(${mapView.x}px,${mapView.y}px,0) scale(${mapView.scale})`;
@@ -443,18 +539,18 @@
       mapStage.classList.toggle('show-route',showRoute);
       mapStage.classList.toggle('trip-overview',showTrip);
       routePath.className.baseVal='route-path';
-      routePath.setAttribute('d','');tripRouteLayer.innerHTML='';
+      routePath.setAttribute('d','');routeOutlinePath.setAttribute('d','');tripRouteLayer.innerHTML='';
       if(showRoute){
-        const points=routeIds.map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(mapPoint);
-        routePath.setAttribute('d',points.map((p,i)=>`${i?'L':'M'} ${Math.round(p.x*4.2)} ${Math.round(p.y*4.2)}`).join(' '));
+        const curve=buildCurvePath(routeIds);
+        routePath.setAttribute('d',curve);routeOutlinePath.setAttribute('d',curve);
         routePath.style.strokeDasharray=(state.screen==='routes'&&state.route==='theme')?'7 7':'0';
         routePath.style.stroke=state.screen==='detail'?dayMap[state.day].color:'';
+        routeOutlinePath.style.strokeDasharray=(state.screen==='routes'&&state.route==='theme')?'7 7':'0';
       }else routePath.style.stroke='';
       if(showTrip){
         tripRouteLayer.innerHTML=dayMap.filter(day=>day.route.length>1).map(day=>{
-          const points=day.route.filter(id=>!(state.deleted&&id==='wetland')).map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(mapPoint);
-          const d=points.map((p,i)=>`${i?'L':'M'} ${Math.round(p.x*4.2)} ${Math.round(p.y*4.2)}`).join(' ');
-          return `<path class="trip-route" d="${d}" stroke="${day.color}"/>`;
+          const d=buildCurvePath(day.route.filter(id=>!(state.deleted&&id==='wetland')));
+          return d?`<path class="curve-route-outline" d="${d}"/><path class="trip-route curve-route-main" d="${d}" stroke="${day.color}"/>`:'';
         }).join('');
       }
       mapLegend.innerHTML= state.screen==='routes'?'<span class="legend-chip">蓝线＝当前方案</span>': showTrip?'<span class="legend-chip">四色＝每天所在区域与路线</span>':state.screen==='detail'?`<span class="legend-chip" style="border-left:4px solid ${dayMap[state.day].color}">D${state.day+1} · ${routeIds.length>1?'按序连接':'单一区域'}</span>`:state.screen==='chat'?'<span class="legend-chip">已载入当前计划</span>':state.screen==='edit'?'<span class="legend-chip">调整影响预览</span>':'<span class="legend-chip">此时只看空间，不画路线</span>';
