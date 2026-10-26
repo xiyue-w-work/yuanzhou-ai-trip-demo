@@ -64,9 +64,9 @@
     .map-legend{position:absolute;z-index:6;top:171px;left:18px;display:flex;gap:5px;align-items:flex-start;pointer-events:none}
     .legend-chip{background:rgba(255,255,255,.94);padding:7px 10px;border-radius:12px;font-size:10px;font-weight:800;color:#4d5853;box-shadow:0 3px 12px rgba(45,70,55,.06)}
     .pin-layer{position:absolute;z-index:5;inset:0}
-    .pin{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;padding:0;transition:transform .2s ease}
+    .pin{position:absolute;--marker-size:29px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;padding:0;transition:left .22s ease,top .22s ease,transform .2s ease}
     .pin:hover{transform:translate(-50%,-50%) scale(1.06)}
-    .pin-dot{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#168fbe;border:3px solid var(--cyan);font-size:10px;font-weight:900;box-shadow:0 4px 10px rgba(18,74,86,.16)}
+    .pin-dot{position:relative;z-index:2;width:var(--marker-size);height:var(--marker-size);border-radius:50%;display:grid;place-items:center;background:#fff;color:#168fbe;border:3px solid var(--cyan);font-size:10px;font-weight:900;box-shadow:0 4px 10px rgba(18,74,86,.16)}
     .pin.is-must .pin-dot{background:var(--ink);color:#fff;border-color:#fff}.pin.is-route-step .pin-dot{background:var(--day-color,var(--cyan));color:#fff;border-color:#fff}.pin.is-offroute .pin-dot{border-color:#aab8af;color:#7a8780;background:#f8fbf8;transform:scale(.84)}.pin.is-hidden{display:none}
     .pin-label{display:none;white-space:nowrap;font-size:10px;font-weight:850;background:rgba(255,255,255,.96);padding:4px 7px;border-radius:8px;box-shadow:0 3px 8px rgba(20,45,35,.08)}
     .pin.is-focused .pin-label{display:block}
@@ -79,11 +79,11 @@
     .map-controls button{width:38px;height:36px;background:transparent;font-size:19px;font-weight:700;border-bottom:1px solid #edf0ee}.map-controls button:last-child{border-bottom:0;font-size:16px}.map-controls button:active{background:#edf9fd}
     .map-provider{position:absolute;z-index:8;right:60px;top:118px;height:31px;padding:0 10px;border-radius:11px;background:rgba(255,255,255,.96);box-shadow:0 5px 16px rgba(33,65,48,.1);font-size:9px;font-weight:850;color:#667078;backdrop-filter:blur(12px)}
     .map-provider.loading{color:#168eb7}.map-provider.connected{background:rgba(23,25,29,.9);color:#fff}.map-provider.error{color:#b45d3c}
-    .real-map-item{position:relative;width:34px;height:34px;display:grid;place-items:center;background:transparent;padding:0;white-space:nowrap;cursor:pointer;overflow:visible}
-    .real-map-marker{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.98);color:#128ab5;border:2.5px solid #fff;font-size:10px;font-weight:900;box-shadow:0 0 0 2px #19ade0,0 6px 16px rgba(20,58,72,.2);transition:transform .18s ease,opacity .18s ease}
+    .real-map-item{position:relative;--marker-size:30px;width:var(--marker-size);height:var(--marker-size);display:grid;place-items:center;background:transparent;padding:0;white-space:nowrap;cursor:pointer;overflow:visible;transition:width .18s ease,height .18s ease}
+    .real-map-marker{position:relative;z-index:2;width:var(--marker-size);height:var(--marker-size);border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.98);color:#128ab5;border:2.5px solid #fff;font-size:10px;font-weight:900;box-shadow:0 0 0 2px #19ade0,0 6px 16px rgba(20,58,72,.2);transition:transform .18s ease,opacity .18s ease,width .18s ease,height .18s ease}
     .real-map-item:hover .real-map-marker{transform:scale(1.08)}
     .real-map-marker.must{background:var(--ink);color:#fff;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(23,25,29,.22),0 6px 16px rgba(20,38,48,.26)}
-    .real-map-marker.route{width:33px;height:33px;background:var(--day-color,#10aee3);color:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px color-mix(in srgb,var(--day-color,#10aee3) 24%,transparent),0 8px 20px rgba(10,80,100,.22)}
+    .real-map-marker.route{width:var(--marker-size);height:var(--marker-size);background:var(--day-color,#10aee3);color:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px color-mix(in srgb,var(--day-color,#10aee3) 24%,transparent),0 8px 20px rgba(10,80,100,.22)}
     .real-map-marker.route.must{background:var(--ink);box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(23,25,29,.2),0 8px 20px rgba(20,38,48,.26)}
     .real-map-marker.offroute{width:21px;height:21px;border-color:#fff;color:#7e8884;background:#eef2f0;box-shadow:0 0 0 1px #aeb8b3,0 4px 10px rgba(38,58,48,.13);opacity:.72}
     .real-map-label{position:absolute;z-index:-1;max-width:112px;overflow:hidden;text-overflow:ellipsis;background:rgba(255,255,255,.96);border:1px solid rgba(20,50,62,.07);border-radius:9px;padding:5px 8px;color:#222a2e;font-size:9px;line-height:1;font-weight:850;box-shadow:0 5px 14px rgba(20,45,55,.12);backdrop-filter:blur(10px);pointer-events:none}
@@ -93,6 +93,7 @@
     .real-map-item.label-bottom .real-map-label{left:50%;top:42px;transform:translateX(-50%)}
     .real-map-item.label-hidden .real-map-label{display:none}
     .real-map-item:focus-visible .real-map-label,.real-map-item:hover .real-map-label{display:block}
+    .marker-leader{position:absolute;z-index:1;left:50%;top:50%;height:1.5px;width:var(--leader-length,0);background:rgba(20,126,161,.54);border-radius:2px;transform:rotate(var(--leader-angle,0deg));transform-origin:0 50%;pointer-events:none;opacity:0;transition:width .2s ease,opacity .2s ease}.has-leader .marker-leader{opacity:1}.pin .marker-leader{background:rgba(20,126,161,.42)}
     .trip-region-item{position:relative;width:38px;height:31px;display:grid;place-items:center;background:transparent;padding:0;white-space:nowrap;cursor:pointer}.trip-region-marker{width:37px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--day-color);color:#fff;font-size:9px;font-weight:900;box-shadow:0 0 0 2px #fff,0 7px 18px rgba(26,55,43,.18)}.trip-region-item.shared .trip-region-marker{background:linear-gradient(135deg,var(--day1) 0 49%,var(--day4) 51%)}.trip-region-label{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.97);border:1px solid rgba(24,48,40,.08);border-radius:11px;padding:6px 8px;box-shadow:0 6px 18px rgba(26,55,43,.14);pointer-events:none}.trip-region-item.label-right .trip-region-label{left:47px}.trip-region-item.label-left .trip-region-label{right:47px}.trip-region-label b{display:block;font-size:9px;line-height:1.1}.trip-region-label span{display:block;font-size:7px;color:#6d7773;margin-top:3px}
     .amap-logo,.amap-copyright{transform:scale(.72);transform-origin:left bottom}
     .map-gesture-hint{position:absolute;z-index:6;left:50%;bottom:28%;transform:translateX(-50%);background:rgba(255,255,255,.9);border-radius:12px;padding:6px 9px;font-size:9px;color:#607067;font-weight:750;pointer-events:none;transition:opacity .25s ease;white-space:nowrap}.map-gesture-hint.hide{opacity:0}
@@ -140,6 +141,8 @@
     .impact{background:#f5f7f6;border-radius:18px;padding:12px;margin-top:4px}.impact b{font-size:12px}.impact p{font-size:10px;color:#647078;line-height:1.55;margin:6px 0 0}.impact.good{background:var(--cyan-soft)}.impact.warn{background:#fff5ef}.impact.danger{background:#fff0ed}
     .manual-pool{display:flex;gap:8px;overflow:auto;padding-bottom:12px;scrollbar-width:none}.pool-card{min-width:125px;background:#f5f7f6;border-radius:17px;padding:10px}.pool-card b{font-size:11px;display:block}.pool-card span{font-size:9px;color:var(--muted);display:block;margin:4px 0 8px}.pool-card button{background:#fff;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:850}
     .chat-content{padding-bottom:94px}.chat-context{border:1px solid #e4e9e7;border-radius:20px;background:#f7f9f8;margin-bottom:13px;overflow:hidden}.chat-context-head{display:flex;align-items:center;justify-content:space-between;padding:11px 12px 8px}.chat-context-head b{font-size:12px}.chat-context-head span{font-size:9px;color:#168eb7;background:var(--cyan-soft);padding:4px 7px;border-radius:8px;font-weight:850}.context-days{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 10px 10px}.context-day{background:#fff;border-radius:12px;padding:8px 9px;font-size:9px;line-height:1.45;color:#626c72}.context-day b{display:block;color:#24292d;font-size:10px;margin-bottom:2px}.constraint-strip{display:flex;gap:5px;padding:0 10px 10px;overflow:auto;scrollbar-width:none}.constraint-strip span{white-space:nowrap;background:#ecefed;border-radius:9px;padding:5px 7px;font-size:8px;font-weight:800;color:#60696e}.chat-thread{display:grid;gap:9px;margin-bottom:11px}.chat-message{max-width:88%;padding:10px 12px;border-radius:16px;font-size:10px;line-height:1.58;white-space:pre-line}.chat-message.ai{justify-self:start;background:#f0f3f2;border-bottom-left-radius:5px;color:#4e5960}.chat-message.user{justify-self:end;background:var(--ink);border-bottom-right-radius:5px;color:#fff}.chat-message b{font-size:11px;color:inherit}.prompt-chips{display:flex;gap:7px;overflow:auto;scrollbar-width:none;padding-bottom:5px}.prompt-chip{white-space:nowrap;background:#fff;border:1px solid #dfe5e3;border-radius:13px;padding:8px 10px;font-size:9px;font-weight:800;color:#4e5a60}.chat-composer{position:absolute;z-index:16;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 42px;gap:8px;padding:10px 16px calc(11px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border-top:1px solid #edf0ef}.chat-input{height:42px;border:1px solid #dfe5e3;border-radius:16px;background:#f5f7f6;padding:0 13px;font-size:11px;outline:none}.chat-input:focus{background:#fff;border-color:#8edcf4}.chat-send{height:42px;border-radius:15px;background:var(--ink);color:#fff;font-size:18px;font-weight:900}.device.is-chat .sheet{border-radius:27px 27px 0 0}.device.is-chat .map-copy{top:112px}.device.is-chat .map-legend{top:167px}.device.is-chat .map-controls{top:118px}.device.is-chat .map-provider{top:118px}.device.is-chat .map-gesture-hint{bottom:14%}
+    .chat-thinking{justify-self:start;display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:15px;background:#f0f3f2;color:#66716e;font-size:9px;font-weight:800}.thinking-dots{display:flex;gap:3px}.thinking-dots i{width:4px;height:4px;border-radius:50%;background:#17a8d7;animation:thinking 1s infinite alternate}.thinking-dots i:nth-child(2){animation-delay:.18s}.thinking-dots i:nth-child(3){animation-delay:.36s}@keyframes thinking{to{opacity:.25;transform:translateY(-2px)}}
+    .chat-proposal,.chat-result,.chat-clarification{width:100%;background:#fff;border:1px solid #dfe8e5;border-radius:19px;padding:12px;box-shadow:0 8px 22px rgba(28,52,44,.07)}.proposal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.proposal-head b{font-size:12px}.proposal-head span{font-size:8px;font-weight:850;color:#168eb7;background:var(--cyan-soft);padding:4px 6px;border-radius:7px}.proposal-scope{font-size:9px;color:#6a7471;margin:4px 0 10px}.proposal-compare{display:grid;grid-template-columns:1fr 18px 1fr;gap:5px;align-items:center}.proposal-compare article{min-width:0;background:#f5f7f6;border-radius:11px;padding:8px}.proposal-compare small{display:block;font-size:7px;color:#8b9491;margin-bottom:3px}.proposal-compare p{margin:0;font-size:9px;line-height:1.45}.proposal-arrow{text-align:center;color:#10aee3;font-weight:900}.proposal-metrics{display:flex;gap:5px;margin:8px 0}.proposal-metrics span{flex:1;background:#eef9fc;color:#167b9d;border-radius:9px;padding:6px;text-align:center;font-size:8px;font-weight:850}.proposal-safe{font-size:8px;color:#65716c;background:#f7f9f8;border-radius:9px;padding:7px 8px}.proposal-actions{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:6px;margin-top:9px}.proposal-actions button,.clarify-actions button,.result-actions button{min-height:34px;border-radius:11px;background:#eef1f0;font-size:9px;font-weight:850}.proposal-actions .primary{background:var(--ink);color:#fff}.clarify-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.clarify-actions button{padding:0 9px}.chat-result{border-color:#cceadd;background:#f4fbf7}.chat-result.cancelled{border-color:#e4e7e5;background:#f7f8f7}.chat-result b,.chat-clarification b{display:block;font-size:11px;margin-bottom:4px}.chat-result p,.chat-clarification p{font-size:9px;line-height:1.5;color:#63706b;margin:0}.result-actions{margin-top:8px}.result-actions button{padding:0 10px;background:var(--ink);color:#fff}
     .snackbar{position:absolute;z-index:30;left:16px;right:16px;bottom:82px;background:#202326;color:#fff;border-radius:18px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;transform:translateY(140px);opacity:0;transition:.25s ease;font-size:12px;font-weight:750}.snackbar.show{transform:translateY(0);opacity:1}.snackbar button{background:transparent;color:var(--cyan);font-weight:850}
     .modal{position:absolute;z-index:40;inset:0;background:rgba(19,25,28,.42);display:grid;align-items:end;opacity:0;pointer-events:none;transition:.2s ease}.modal.show{opacity:1;pointer-events:auto}.modal-card{background:white;border-radius:30px 30px 0 0;padding:13px 20px calc(22px + env(safe-area-inset-bottom));transform:translateY(30px);transition:.25s ease}.modal.show .modal-card{transform:translateY(0)}.modal-card h3{font-size:22px;margin:8px 0}.modal-card p{font-size:12px;line-height:1.6;color:#657078;margin:0 0 15px}.modal-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:9px}
     .api-form{display:grid;gap:10px;margin:10px 0 14px}.api-field{display:grid;gap:6px}.api-field span{font-size:11px;font-weight:850}.api-field input{width:100%;height:44px;border:1px solid #dfe4e2;border-radius:14px;padding:0 12px;font-size:12px;background:#f8f9f8;outline:none}.api-field input:focus{border-color:var(--cyan);background:#fff}.api-note{font-size:10px!important;line-height:1.55!important;margin:0!important;background:#f5f7f6;border-radius:13px;padding:10px}.api-link{color:#138db8;text-decoration:none;font-weight:800}
@@ -228,6 +231,25 @@
       {day:2,id:'D3',color:'#e66b24',label:'市区·人文自然',route:['memorial','waterfall']},
       {day:3,id:'D4',color:'#7356c8',label:'和顺·返程',route:['heshun']}
     ];
+    const INITIAL_PLAN_MODEL=[
+      {id:'D1',title:'落地和顺，侨乡慢游',summary:'机场 → 和顺古镇 → 野鸭湖日落 → 古镇住宿',events:[
+        {id:'arrival',time:'11:20',name:'抵达腾冲驼峰机场',note:'取车约 35 分钟',meta:'¥220/天'},
+        {id:'heshun',spotId:'heshun',time:'13:00',name:'和顺古镇',note:'午餐后慢逛，住在古镇内',meta:'步行 2.6 km'},
+        {id:'sunset',time:'17:40',name:'野鸭湖日落',note:'光线最佳窗口 17:30–18:20',meta:'免费'}]},
+      {id:'D2',title:'火山地貌，温泉收尾',summary:'住宿 → 火山公园 → 北海湿地 → 热海温泉',events:[
+        {id:'volcano',spotId:'volcano',time:'10:00',name:'火山地质公园',note:'风大时热气球可能停飞',meta:'车程 48 分'},
+        {id:'wetland',spotId:'wetland',time:'14:10',name:'北海湿地',note:'竹筏与栈道二选一',meta:'车程 31 分'},
+        {id:'resea',spotId:'resea',time:'17:30',name:'热海温泉',note:'晚间泡汤，避免空腹',meta:'需预约'}]},
+      {id:'D3',title:'历史记忆，城市自然',summary:'国殇墓园 → 滇西抗战纪念馆 → 叠水河瀑布',events:[
+        {id:'memorial',spotId:'memorial',time:'09:40',name:'国殇墓园',note:'周一闭馆，当前为周日',meta:'免费'},
+        {id:'museum',time:'10:50',name:'滇西抗战纪念馆',note:'建议提前预约',meta:'步行 13 分'},
+        {id:'waterfall',spotId:'waterfall',time:'14:30',name:'叠水河瀑布',note:'午后易见彩虹',meta:'车程 21 分'}]},
+      {id:'D4',title:'古镇收尾，从容返程',summary:'古镇手工艺 → 市区午餐 → 机场',events:[
+        {id:'craft',spotId:'heshun',time:'10:00',name:'和顺手工艺店',note:'购物与寄送预留 1 小时',meta:'步行'},
+        {id:'lunch',time:'13:20',name:'市区午餐',note:'距离机场约 25 分钟',meta:'人均 ¥70'},
+        {id:'departure',time:'16:30',name:'前往驼峰机场',note:'为还车和值机预留时间',meta:'航班 19:45'}]}
+    ];
+    function cloneData(value){return JSON.parse(JSON.stringify(value))}
     const tripRegionMarkers=[
       {days:[0,3],badge:'D1/4',label:'和顺片区',note:'落地慢游 · 返程收尾',lnglat:[98.456754,25.009423],spot:'heshun',shared:true,side:'left',fallback:[18,70],pixelOffset:[-16,14]},
       {days:[1],badge:'D2',label:'城北·火山湿地',note:'北部一线向南收尾',lnglat:[98.540000,25.150000],spot:'wetland',side:'right',fallback:[54,37]},
@@ -236,7 +258,9 @@
     const state = {
       screen:'import', history:[], filter:'all', focusSpot:'heshun', must:new Set(['heshun']), transport:'car', route:'balanced', day:0, mapMode:'trip',
       imported:false, hotel:'yes', flight:'no', editDecision:'go', editDay:'10.24', editTime:'上午', editOrder:'AI顺路', deleted:false,
-      chatMessages:[{role:'ai',text:'我已经读取当前 4 天计划和固定约束。你可以告诉我想改哪天、上午或下午、空间顺序，或者直接删掉某个点。\n\n我会先给你修改预览，不会直接覆盖计划。'}]
+      planModel:cloneData(INITIAL_PLAN_MODEL),planSnapshot:null,
+      chatFlow:{pendingProposalId:null,lastAppliedProposalId:null,proposals:{},awaiting:null,requestId:0,alternatives:[]},
+      chatMessages:[{role:'ai',kind:'text',text:'我已经读取当前 4 天计划和固定约束。你可以告诉我想改哪天、上午或下午、空间顺序，或者直接删掉某个点。\n\n我会先给你修改预览，不会直接覆盖计划。'}]
     };
     const screenOrder=['import','overview','transport','routes','detail','chat','edit'];
     const device=document.querySelector('.device');
@@ -264,7 +288,8 @@
     const DEFAULT_AMAP_CONFIG={key:'6258a4013208ccd222434f98df92e67b',securityJsCode:'c74b7e3a4748abf69aea1edbd463a067'};
     const markerLabelSide={heshun:'left',resea:'left',wetland:'right',volcano:'top',memorial:'left',waterfall:'right',ginkgo:'right'};
     const markerPixelOffset={heshun:[-26,20],memorial:[18,-13],waterfall:[18,8]};
-    const amapState={AMap:null,map:null,markers:[],polylines:[],ready:false,loading:false,lastSignature:'',driving:null,drivingCache:new Map()};
+    const amapState={AMap:null,map:null,markers:[],markerEntries:[],polylines:[],ready:false,loading:false,lastSignature:'',driving:null,drivingCache:new Map()};
+    const markerLayoutState={zoom:0,layouts:new Map()};
     const routeStatus={key:'',mode:'idle'};
     let mapGesture={startX:0,startY:0,originX:0,originY:0,distance:0,scale:1,moved:false};
     let sheetHeight=45;
@@ -302,7 +327,7 @@
       else if(state.screen!=='import'){state.screen='import';resetSheetForScreen('import');resetMapView(false);render()}
     }
     function reset(){
-      Object.assign(state,{screen:'import',history:[],filter:'all',focusSpot:'heshun',transport:'car',route:'balanced',day:0,mapMode:'trip',imported:false,hotel:'yes',flight:'no',editDecision:'go',editDay:'10.24',editTime:'上午',editOrder:'AI顺路',deleted:false,chatMessages:[{role:'ai',text:'我已经读取当前 4 天计划和固定约束。你可以告诉我想改哪天、上午或下午、空间顺序，或者直接删掉某个点。\n\n我会先给你修改预览，不会直接覆盖计划。'}]});
+      Object.assign(state,{screen:'import',history:[],filter:'all',focusSpot:'heshun',transport:'car',route:'balanced',day:0,mapMode:'trip',imported:false,hotel:'yes',flight:'no',editDecision:'go',editDay:'10.24',editTime:'上午',editOrder:'AI顺路',deleted:false,planModel:cloneData(INITIAL_PLAN_MODEL),planSnapshot:null,chatFlow:{pendingProposalId:null,lastAppliedProposalId:null,proposals:{},awaiting:null,requestId:0,alternatives:[]},chatMessages:[{role:'ai',kind:'text',text:'我已经读取当前 4 天计划和固定约束。你可以告诉我想改哪天、上午或下午、空间顺序，或者直接删掉某个点。\n\n我会先给你修改预览，不会直接覆盖计划。'}]});
       state.must=new Set(['heshun']);hideModal();hideSnack();resetSheetForScreen('import');resetMapView(true);render();
     }
     function showSnack(text,action=true){
@@ -321,6 +346,72 @@
         visible=ids.map(id=>spots.find(s=>s.id===id)).filter(Boolean);
       }
       return visible;
+    }
+    function getMarkerVisualSize(zoom){
+      return Math.max(26,Math.min(38,Math.round(26+(Number(zoom)-9)*2.2)));
+    }
+    function getMarkerPriority(spot,routeIds=[]){
+      const routeIndex=routeIds.indexOf(spot.id);
+      if(state.focusSpot===spot.id)return 500;
+      if(state.must.has(spot.id))return 440;
+      if(routeIndex===0||routeIndex===routeIds.length-1)return 380;
+      if(routeIndex>=0)return 300-routeIndex;
+      return 100;
+    }
+    function resolveMarkerLayouts(items,zoom){
+      const size=getMarkerVisualSize(zoom),placed=[];
+      const layouts=new Map();
+      const radii=[18,30,42,52,64];
+      const directions=[[0,-1],[1,0],[0,1],[-1,0],[.72,-.72],[.72,.72],[-.72,.72],[-.72,-.72]];
+      const candidates=[[0,0],...radii.flatMap(radius=>directions.map(([x,y])=>[Math.round(x*radius),Math.round(y*radius)]))];
+      [...items].sort((a,b)=>(b.priority||0)-(a.priority||0)||String(a.id).localeCompare(String(b.id))).forEach(item=>{
+        const itemSize=item.size||size;
+        let best=null;
+        for(const offset of candidates){
+          const center=[item.point[0]+offset[0],item.point[1]+offset[1]];
+          let conflicts=0,overlap=0;
+          placed.forEach(other=>{
+            const distance=Math.hypot(center[0]-other.center[0],center[1]-other.center[1]);
+            const gap=(itemSize+other.size)/2+8;
+            if(distance<gap){conflicts++;overlap+=gap-distance}
+          });
+          const displacement=Math.hypot(offset[0],offset[1]);
+          const score=conflicts*10000+overlap*100+displacement;
+          if(!best||score<best.score)best={offset,center,score,conflicts};
+          if(conflicts===0)break;
+        }
+        const priority=item.priority||0;
+        const showLabel=zoom>=14.5||(zoom>=12.2&&priority>=300)||priority>=440;
+        const displacement=Math.hypot(best.offset[0],best.offset[1]);
+        const layout={offset:best.offset,size:itemSize,showLabel,leader:displacement>14};
+        layouts.set(item.id,layout);placed.push({center:best.center,size:itemSize,id:item.id});
+      });
+      return layouts;
+    }
+    function setLeaderGeometry(content,offset,enabled){
+      const leader=content.querySelector('.marker-leader');if(!leader)return;
+      const length=Math.hypot(offset[0],offset[1]);
+      leader.style.setProperty('--leader-length',`${Math.max(0,length-4)}px`);
+      leader.style.setProperty('--leader-angle',`${Math.atan2(-offset[1],-offset[0])*180/Math.PI}deg`);
+      content.classList.toggle('has-leader',enabled);
+    }
+    function refreshMarkerLayouts(){
+      if(!amapState.ready||!amapState.map||!amapState.AMap||!amapState.markerEntries.length)return;
+      const zoom=amapState.map.getZoom();
+      const routeIds=getRouteIds();
+      const items=amapState.markerEntries.map(entry=>{
+        const pixel=amapState.map.lngLatToContainer(new amapState.AMap.LngLat(entry.spot.lnglat[0],entry.spot.lnglat[1]));
+        return {id:entry.spot.id,point:[pixel.getX(),pixel.getY()],priority:getMarkerPriority(entry.spot,routeIds)};
+      });
+      const layouts=resolveMarkerLayouts(items,zoom);markerLayoutState.zoom=zoom;markerLayoutState.layouts=layouts;
+      amapState.markerEntries.forEach(entry=>{
+        const layout=layouts.get(entry.spot.id);if(!layout)return;
+        entry.content.style.setProperty('--marker-size',`${layout.size}px`);
+        entry.content.classList.toggle('label-hidden',!layout.showLabel);
+        setLeaderGeometry(entry.content,layout.offset,layout.leader);
+        entry.marker.setOffset(new amapState.AMap.Pixel(layout.offset[0],layout.offset[1]));
+        entry.marker.setzIndex((entry.priority||100)+(layout.leader?5:0));
+      });
     }
     function loadExternalScript(src,id){
       if(window.AMapLoader)return Promise.resolve();
@@ -423,7 +514,7 @@
       const signature=JSON.stringify([state.screen,state.filter,state.route,state.day,state.mapMode,state.deleted,state.editOrder,[...state.must],state.focusSpot]);
       if(signature===amapState.lastSignature&&!forceFit)return;
       const old=[...amapState.markers,...amapState.polylines];if(old.length)amapState.map.remove(old);
-      amapState.markers=[];amapState.polylines=[];
+      amapState.markers=[];amapState.markerEntries=[];amapState.polylines=[];
       if(showTrip){
         routeStatus.key='';routeStatus.mode='idle';
         amapState.markers=tripRegionMarkers.map(region=>{
@@ -441,12 +532,14 @@
       amapState.markers=visible.map((s,i)=>{
         const routeIndex=routeIds.indexOf(s.id),markerText=showRoute?(routeIndex>=0?routeIndex+1:'·'):(state.must.has(s.id)?'✓':i+1);
         const showLabel=!showRoute||routeIndex===0||routeIndex===routeIds.length-1||(routeIndex>=0&&routeIds.length<=3)||state.focusSpot===s.id;
-        const content=document.createElement('button');content.type='button';content.className=`real-map-item label-${markerLabelSide[s.id]||'right'} ${showLabel?'':'label-hidden'}`;content.setAttribute('aria-label',s.name);
+        const content=document.createElement('button');content.type='button';content.dataset.spotId=s.id;content.className=`real-map-item label-${markerLabelSide[s.id]||'right'} ${showLabel?'':'label-hidden'}`;content.setAttribute('aria-label',s.name);
         if(state.screen==='detail')content.style.setProperty('--day-color',dayMap[state.day].color);
-        content.innerHTML=`<span class="real-map-marker ${state.must.has(s.id)&&state.screen!=='detail'?'must':''} ${routeIndex>=0?'route':''} ${showRoute&&routeIndex<0?'offroute':''}">${markerText}</span><span class="real-map-label">${s.name}</span>`;
+        content.innerHTML=`<i class="marker-leader"></i><span class="real-map-marker ${state.must.has(s.id)&&state.screen!=='detail'?'must':''} ${routeIndex>=0?'route':''} ${showRoute&&routeIndex<0?'offroute':''}">${markerText}</span><span class="real-map-label">${s.name}</span>`;
         content.addEventListener('click',()=>openSpotModal(s));
-        const offset=markerPixelOffset[s.id]||[0,0];
-        return new amapState.AMap.Marker({position:s.lnglat,content,anchor:'center',offset:new amapState.AMap.Pixel(offset[0],offset[1]),title:s.name,zIndex:routeIndex===0?170:(routeIndex>=0?150:(state.must.has(s.id)?140:110))});
+        const priority=getMarkerPriority(s,routeIds);
+        const marker=new amapState.AMap.Marker({position:s.lnglat,content,anchor:'center',offset:new amapState.AMap.Pixel(0,0),title:s.name,zIndex:priority});
+        amapState.markerEntries.push({spot:s,content,marker,priority});
+        return marker;
       });
       if(showRoute){
         const isDaily=state.screen==='detail'&&state.mapMode==='day';
@@ -463,7 +556,7 @@
       amapState.lastSignature=signature;
       if(state.screen==='detail'&&state.mapMode==='day'&&routeIds.length>1){updateRouteLegendStatus();loadDrivingRoute(state.day,routeIds,routeStatus.key)}
       else updateRouteLegendStatus();
-      requestAnimationFrame(fitAmapView);
+      requestAnimationFrame(()=>{fitAmapView();requestAnimationFrame(refreshMarkerLayouts)});
     }
     async function initAmap(config){
       if(amapState.loading||amapState.ready||!config?.key||!config?.securityJsCode)return;
@@ -473,7 +566,7 @@
         await loadExternalScript('https://webapi.amap.com/loader.js','amap-jsapi-loader');
         const AMap=await window.AMapLoader.load({key:config.key,version:'2.0',plugins:['AMap.Scale','AMap.Driving']});
         amapState.AMap=AMap;amapState.map=new AMap.Map('amapContainer',{viewMode:'2D',center:[98.50,25.09],zoom:10.2,zooms:[8.5,18],resizeEnable:true,showLabel:false,features:['bg','road','building'],mapStyle:'amap://styles/whitesmoke'});
-        amapState.map.addControl(new AMap.Scale({position:'LB'}));amapState.ready=true;amapState.loading=false;amapState.lastSignature='';mapStage.classList.add('amap-ready');mapProvider.className='map-provider connected';mapProvider.textContent='高德地图 · 已连接';mapHint.classList.add('hide');
+        amapState.map.addControl(new AMap.Scale({position:'LB'}));amapState.map.on('zoomend',refreshMarkerLayouts);amapState.map.on('moveend',refreshMarkerLayouts);amapState.ready=true;amapState.loading=false;amapState.lastSignature='';mapStage.classList.add('amap-ready');mapProvider.className='map-provider connected';mapProvider.textContent='高德地图 · 已连接';mapHint.classList.add('hide');
         syncAmapOverlays(true);setTimeout(()=>{amapState.map.resize();fitAmapView()},120);
       }catch(error){console.warn('[圆周旅记] 高德地图不可用，使用离线示意地图',error);fallbackToSchematicMap('高德地图连接失败，已保留可交互示意地图')}
     }
@@ -560,8 +653,8 @@
     }
     function getRouteIds(){
       if(state.screen==='routes') return state.route==='relaxed'?['heshun','wetland','resea']:state.route==='theme'?['heshun','memorial','waterfall','wetland']:['heshun','memorial','volcano','wetland','resea'];
-      if(state.screen==='detail') return dayMap[state.day].route.filter(id=>!(state.deleted&&id==='wetland'));
-      if(state.screen==='chat') return state.route==='relaxed'?['heshun','wetland','resea']:state.route==='theme'?['heshun','memorial','waterfall','wetland']:['heshun','memorial','volcano','wetland','resea'];
+      if(state.screen==='detail') return state.planModel[state.day].events.map(event=>event.spotId).filter(Boolean).filter(id=>!(state.deleted&&id==='wetland'));
+      if(state.screen==='chat') return state.planModel[1].events.map(event=>event.spotId).filter(Boolean).filter(id=>!(state.deleted&&id==='wetland'));
       if(state.screen==='edit') return state.editOrder==='我来排序'?['volcano','resea','wetland']:['volcano','wetland','resea'];
       return [];
     }
@@ -574,10 +667,16 @@
         syncAmapOverlays();return;
       }
       const showRoute=['routes','detail','edit','chat'].includes(state.screen)&&routeIds.length>1;
+      const bounds=mapStage.getBoundingClientRect();
+      const width=bounds.width||390,height=bounds.height||430;
+      const fallbackZoom=10+Math.log2(Math.max(.55,mapView.scale))*2.6;
+      const fallbackPoints=visible.map(s=>{const p=mapPoint(s);return {spot:s,p,point:[p.x/100*width,p.y/100*height],priority:getMarkerPriority(s,routeIds)}});
+      const fallbackLayouts=resolveMarkerLayouts(fallbackPoints.map(item=>({id:item.spot.id,point:item.point,priority:item.priority})),fallbackZoom);
       pinLayer.innerHTML=visible.map((s,i)=>{
-        const p=mapPoint(s);const routeIndex=routeIds.indexOf(s.id);
+        const p=mapPoint(s);const routeIndex=routeIds.indexOf(s.id);const layout=fallbackLayouts.get(s.id)||{offset:[0,0],size:29,leader:false};
         const marker=showRoute?(routeIndex>=0?routeIndex+1:'·'):(state.must.has(s.id)?'✓':i+1);
-        return `<button class="pin ${state.must.has(s.id)&&state.screen!=='detail'?'is-must':''} ${state.focusSpot===s.id?'is-focused':''} ${routeIndex>=0?'is-route is-route-step':''} ${showRoute&&routeIndex<0?'is-offroute':''}" style="left:${p.x}%;top:${p.y}%;--day-color:${state.screen==='detail'?dayMap[state.day].color:'#14aee3'}" data-pin="${s.id}" aria-label="${s.name}"><span class="pin-dot">${marker}</span><span class="pin-label">${s.name}</span></button>`;
+        const length=Math.max(0,Math.hypot(layout.offset[0],layout.offset[1])-4),angle=Math.atan2(-layout.offset[1],-layout.offset[0])*180/Math.PI;
+        return `<button class="pin ${layout.leader?'has-leader':''} ${state.must.has(s.id)&&state.screen!=='detail'?'is-must':''} ${state.focusSpot===s.id?'is-focused':''} ${routeIndex>=0?'is-route is-route-step':''} ${showRoute&&routeIndex<0?'is-offroute':''}" style="left:calc(${p.x}% + ${layout.offset[0]}px);top:calc(${p.y}% + ${layout.offset[1]}px);--marker-size:${layout.size}px;--leader-length:${length}px;--leader-angle:${angle}deg;--day-color:${state.screen==='detail'?dayMap[state.day].color:'#14aee3'}" data-pin="${s.id}" aria-label="${s.name}"><i class="marker-leader"></i><span class="pin-dot">${marker}</span><span class="pin-label">${s.name}</span></button>`;
       }).join('');
       syncAmapOverlays();
     }
@@ -629,49 +728,98 @@
     }
     function renderDetail(){
       const days=[['D1','和顺'],['D2','城北'],['D3','市区'],['D4','返程']];
-      const plans=[
-        {title:'落地和顺，侨乡慢游',sum:'机场 → 和顺古镇 → 野鸭湖日落 → 古镇住宿',events:[['11:20','抵达腾冲驼峰机场','取车约 35 分钟','¥220/天'],['13:00','和顺古镇','午餐后慢逛，住在古镇内','步行 2.6 km'],['17:40','野鸭湖日落','光线最佳窗口 17:30–18:20','免费']]},
-        {title:'火山地貌，温泉收尾',sum:'住宿 → 火山公园 → 北海湿地 → 热海温泉',events:[['10:00','火山地质公园','风大时热气球可能停飞','车程 48 分'],['14:10','北海湿地','竹筏与栈道二选一','车程 31 分'],['17:30','热海温泉','晚间泡汤，避免空腹','需预约']]},
-        {title:'历史记忆，城市自然',sum:'国殇墓园 → 滇西抗战纪念馆 → 叠水河 → 热海',events:[['09:40','国殇墓园','周一闭馆，当前为周日','免费'],['10:50','滇西抗战纪念馆','建议提前预约','步行 13 分'],['14:30','叠水河瀑布','午后易见彩虹','车程 21 分']]},
-        {title:'古镇收尾，从容返程',sum:'古镇手工艺 → 市区午餐 → 机场',events:[['10:00','和顺手工艺店','购物与寄送预留 1 小时','步行'],['13:20','市区午餐','距离机场约 25 分钟','人均 ¥70'],['16:30','前往驼峰机场','为还车和值机预留时间','航班 19:45']]}
-      ];
-      const p=plans[state.day];
-      const tripSummary=plans.map((plan,i)=>`<button class="trip-day-card" data-day="${i}" style="--day-color:${dayMap[i].color}"><span class="day-badge">D${i+1}</span><span><b>${dayMap[i].label}</b><p>${plan.sum}</p></span><em>›</em></button>`).join('');
+      const p=state.planModel[state.day];
+      const tripSummary=state.planModel.map((plan,i)=>`<button class="trip-day-card" data-day="${i}" style="--day-color:${dayMap[i].color}"><span class="day-badge">D${i+1}</span><span><b>${dayMap[i].label}</b><p>${plan.summary}</p></span><em>›</em></button>`).join('');
       return header('你的腾冲 4 日计划',state.mapMode==='trip'?'先看空间分区，再进入每天':'当前只看当天站点与顺序','<button class="text-btn cyan" data-map-mode="trip">全程总览</button>')+`
         <div class="content"><div class="day-strip"><button class="day-chip trip ${state.mapMode==='trip'?'active':''}" data-map-mode="trip"><b>全程</b><span>区域地图</span></button>${days.map((d,i)=>`<button class="day-chip ${state.mapMode==='day'&&state.day===i?'active':''}" style="--day-color:${dayMap[i].color}" data-day="${i}"><b>${d[0]}</b><span>${d[1]}</span></button>`).join('')}</div>
-        ${state.mapMode==='trip'?`<div class="day-overview"><div class="row"><b>4 天分成 3 个空间片区</b><span class="tag fit">少折返</span></div><p>D1/D4 在和顺，D2 走城北火山—湿地一线，D3 留在市区。点地图区域或下方任意一天展开。</p></div><div class="trip-summary">${tripSummary}</div>`:`<div class="day-overview"><div class="row"><b>${p.title}</b><span class="tag fit">${state.route==='balanced'?'均衡':'已适配'}</span></div><p>${p.sum}</p></div>
-        <div class="timeline">${p.events.map(e=>`<div class="event ${state.deleted&&e[1]==='北海湿地'?'deleted':''}"><span class="event-time">${e[0]}</span><button class="event-card" data-event="${e[1]}"><b>${e[1]}</b><p>${e[2]}</p><span class="event-meta"><span>${e[3]}</span>${e[1]==='火山地质公园'?'<span class="risk">天气风险</span>':''}${e[1]==='北海湿地'?'<span class="tag fit">点击体验编辑</span>':''}</span></button></div>`).join('')}</div>
+        ${state.mapMode==='trip'?`<div class="day-overview"><div class="row"><b>4 天分成 3 个空间片区</b><span class="tag fit">少折返</span></div><p>D1/D4 在和顺，D2 走城北火山—湿地一线，D3 留在市区。点地图区域或下方任意一天展开。</p></div><div class="trip-summary">${tripSummary}</div>`:`<div class="day-overview"><div class="row"><b>${p.title}</b><span class="tag fit">${state.route==='balanced'?'均衡':'已适配'}</span></div><p>${p.summary}</p></div>
+        <div class="timeline">${p.events.filter(e=>!(state.deleted&&e.spotId==='wetland')).map(e=>`<div class="event"><span class="event-time">${e.time}</span><button class="event-card" data-event="${e.name}"><b>${e.name}</b><p>${e.note}</p><span class="event-meta"><span>${e.meta}</span>${e.name==='火山地质公园'?'<span class="risk">天气风险</span>':''}${e.name==='北海湿地'?'<span class="tag fit">点击体验编辑</span>':''}</span></button></div>`).join('')}</div>
         <div class="banner"><b>AI 事实检查</b><p>国殇墓园避开周一闭馆；热海建议提前预约；返程已预留还车与值机时间。景区开放与交通价格仍需出发前复核。</p></div>`}</div>
         ${actions('问 AI 调整','ask-ai','编辑当前计划','manual-edit')}`;
     }
     function escapeHtml(value){return String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
-    function buildAiReply(text){
-      const prompt=text.toLowerCase();
-      if(prompt.includes('d2')&&(prompt.includes('不要太赶')||prompt.includes('不赶')||prompt.includes('轻松')))return '<b>调整预览 · D2 降低强度</b>\n10:30 火山公园（只走核心步道）→ 14:00 北海湿地 → 17:10 热海。\n\n预计少走 2.1 km、少开 35 分钟；三个核心体验都保留。住宿与 D4 19:45 返程不变。要应用这个版本吗？';
-      if(prompt.includes('北海湿地')&&prompt.includes('下午'))return '<b>调整预览 · 北海湿地改到下午</b>\nD2 顺序改为：火山公园 → 午餐 → 北海湿地 → 热海。北海湿地建议 14:00–16:00，仍然顺路，不新增折返。\n\n当前只生成预览，确认后我再更新计划。';
-      if(prompt.includes('雨')||prompt.includes('下雨'))return '<b>备选预览 · 雨天方案</b>\n把 D3 的纪念馆与市区内容作为雨天日；火山、湿地根据逐小时天气与 D3 互换。\n\n酒店、租车和返程航班都不动，出发前一天再提醒你确认。';
-      if(prompt.includes('不去')||prompt.includes('删除'))return '<b>删除影响预览</b>\n可以直接删掉这个点，不会自动补入新景点。我会只重算剩余地点的空间顺序，并告诉你空出的时间和减少的车程。请再告诉我是哪个景点。';
-      return '<b>我先按当前计划计算了一版</b>\n我会保留租车、不早起、D1 和顺住宿和 D4 19:45 返程这四个硬约束，只调整你提到的日期、时段或空间顺序。\n\n你可以再具体一点，例如“D3 下午删掉叠水河”。';
+    function classifyAiIntent(text){
+      const prompt=String(text||'').trim().toLowerCase();
+      const namedSpots=[['北海湿地','wetland',1],['火山地质公园','volcano',1],['火山公园','volcano',1],['热海温泉','resea',1],['热海','resea',1],['叠水河瀑布','waterfall',2],['叠水河','waterfall',2],['国殇墓园','memorial',2],['和顺古镇','heshun',0]];
+      const named=namedSpots.find(([name])=>prompt.includes(name));
+      const deleteRequested=prompt.includes('删除')||prompt.includes('不去')||state.chatFlow.awaiting==='delete-spot';
+      if(deleteRequested)return {type:'delete-spot',text,needsClarification:!named,spotName:named?.[0],spotId:named?.[1],dayIndex:named?.[2]};
+      if(prompt.includes('雨')||prompt.includes('下雨'))return {type:'rain-plan',text};
+      if(prompt.includes('北海湿地')&&prompt.includes('下午'))return {type:'move-wetland-afternoon',text};
+      if(prompt.includes('d2')&&(prompt.includes('不要太赶')||prompt.includes('不赶')||prompt.includes('轻松')))return {type:'relax-d2',text};
+      return {type:'unknown',text};
+    }
+    function buildAiProposal(intent){
+      const id=`proposal-${state.chatFlow.requestId}`;
+      const base={id,type:intent.type,status:'pending',unchanged:['D1 和顺住宿','租车方式','不早起节奏','D4 19:45 返程']};
+      if(intent.type==='relax-d2')return {...base,title:'D2 降低强度，保留三个核心体验',scope:'D2 · 火山—湿地—热海',before:'10:00 出发 · 核心步道＋完整湿地 · 17:30 热海',after:'10:30 出发 · 火山只走核心段 · 14:20 湿地 · 17:10 热海',metrics:['少走 2.1 km','少开 35 分','景点仍为 3 个'],payload:{kind:'replace-day',dayIndex:1,plan:{id:'D2',title:'轻量火山湿地，温泉收尾',summary:'晚半小时出发 → 火山核心段 → 北海湿地 → 热海温泉',events:[{id:'volcano',spotId:'volcano',time:'10:30',name:'火山地质公园',note:'只走核心步道，热气球视天气决定',meta:'车程 48 分'},{id:'wetland',spotId:'wetland',time:'14:20',name:'北海湿地',note:'竹筏与栈道二选一，保留 1.5 小时',meta:'车程 31 分'},{id:'resea',spotId:'resea',time:'17:10',name:'热海温泉',note:'提前入场，晚间泡汤',meta:'需预约'}]}}};
+      if(intent.type==='move-wetland-afternoon')return {...base,title:'北海湿地固定到下午',scope:'D2 · 只调整时段与午餐缓冲',before:'14:10 北海湿地，午餐时间未显式预留',after:'12:40 午餐 · 14:20 北海湿地 · 17:20 热海',metrics:['不新增折返','多 45 分午餐','日落前离开湿地'],payload:{kind:'replace-day',dayIndex:1,plan:{id:'D2',title:'火山地貌，下午湿地',summary:'火山公园 → 午餐 → 北海湿地 → 热海温泉',events:[{id:'volcano',spotId:'volcano',time:'10:00',name:'火山地质公园',note:'风大时热气球可能停飞',meta:'车程 48 分'},{id:'lunch-d2',time:'12:40',name:'城北午餐',note:'预留 60 分钟，不赶路',meta:'人均 ¥60'},{id:'wetland',spotId:'wetland',time:'14:20',name:'北海湿地',note:'下午光线柔和，16:00 前离开',meta:'车程 31 分'},{id:'resea',spotId:'resea',time:'17:20',name:'热海温泉',note:'晚间泡汤，避免空腹',meta:'需预约'}]}}};
+      if(intent.type==='delete-spot'&&!intent.needsClarification){
+        const current=state.planModel[intent.dayIndex]?.events.find(event=>event.spotId===intent.spotId);
+        return {...base,title:`删除${intent.spotName}，不自动补点`,scope:`D${intent.dayIndex+1} · 重新计算剩余顺序`,before:current?`${current.time} ${current.name}`:`计划中的${intent.spotName}`,after:'移除该点，保留空闲时间，不加入新景点',metrics:['空出约 2.5 小时','减少一段车程','新增景点 0 个'],payload:{kind:'delete-event',dayIndex:intent.dayIndex,spotId:intent.spotId,name:intent.spotName}};
+      }
+      if(intent.type==='rain-plan')return {...base,title:'保存雨天备选，不改主计划',scope:'D2 / D3 可按逐小时天气互换',before:'主计划：D2 户外，D3 市区人文',after:'雨天：D3 室内优先；晴天恢复 D2 火山湿地',metrics:['主计划不变','出发前 1 天提醒','住宿航班不变'],payload:{kind:'save-alternative',alternative:{name:'腾冲雨天备选',rule:'D2 遇持续降雨时，与 D3 市区人文日互换；火山和湿地不在雨中硬走。'}}};
+      return null;
+    }
+    function cancelPendingProposal(reason='已取消上一版未确认方案'){
+      const id=state.chatFlow.pendingProposalId;if(!id)return;
+      const proposal=state.chatFlow.proposals[id];if(proposal&&proposal.status==='pending')proposal.status='cancelled';
+      state.chatFlow.pendingProposalId=null;state.chatMessages.push({role:'ai',kind:'cancelled',text:reason});
+    }
+    function applyAiProposal(id){
+      const proposal=state.chatFlow.proposals[id];if(!proposal||proposal.status!=='pending')return;
+      state.planSnapshot={planModel:cloneData(state.planModel),deleted:state.deleted,alternatives:cloneData(state.chatFlow.alternatives),day:state.day};
+      const payload=proposal.payload;
+      if(payload.kind==='replace-day'){state.planModel[payload.dayIndex]=cloneData(payload.plan);state.day=payload.dayIndex}
+      if(payload.kind==='delete-event'){
+        state.planModel[payload.dayIndex].events=state.planModel[payload.dayIndex].events.filter(event=>event.spotId!==payload.spotId);
+        state.planModel[payload.dayIndex].summary=state.planModel[payload.dayIndex].events.map(event=>event.name).join(' → ');
+        if(payload.spotId==='wetland')state.deleted=true;state.day=payload.dayIndex;
+      }
+      if(payload.kind==='save-alternative')state.chatFlow.alternatives.push(cloneData(payload.alternative));
+      proposal.status='applied';state.chatFlow.pendingProposalId=null;state.chatFlow.lastAppliedProposalId=id;state.chatFlow.awaiting=null;amapState.lastSignature='';
+      state.chatMessages.push({role:'ai',kind:'applied',text:payload.kind==='save-alternative'?'雨天方案已保存为备选，当前主计划没有变化。':`“${proposal.title}”已同步到逐日计划和地图。`,proposalId:id});render();
+    }
+    function undoAiProposal(){
+      if(!state.planSnapshot)return;
+      state.planModel=cloneData(state.planSnapshot.planModel);state.deleted=state.planSnapshot.deleted;state.chatFlow.alternatives=cloneData(state.planSnapshot.alternatives);state.day=state.planSnapshot.day;state.planSnapshot=null;state.chatFlow.lastAppliedProposalId=null;amapState.lastSignature='';
+      state.chatMessages.push({role:'ai',kind:'text',text:'已撤销刚才的修改，逐日计划和地图都恢复到应用前。'});render();
     }
     function submitAiPrompt(value){
       const text=String(value||'').trim();if(!text)return;
-      state.chatMessages.push({role:'user',text},{role:'ai',text:buildAiReply(text)});render();
-      setTimeout(()=>{const c=document.querySelector('.chat-content');if(c)c.scrollTop=c.scrollHeight},30);
+      cancelPendingProposal();const requestId=++state.chatFlow.requestId;
+      state.chatMessages.push({role:'user',kind:'text',text},{role:'ai',kind:'thinking',id:`thinking-${requestId}`,text:'正在核对空间顺序与固定约束'});render();
+      setTimeout(()=>{
+        state.chatMessages=state.chatMessages.filter(message=>message.id!==`thinking-${requestId}`);
+        if(requestId!==state.chatFlow.requestId){render();return}
+        const intent=classifyAiIntent(text);
+        if(intent.type==='delete-spot'&&intent.needsClarification){state.chatFlow.awaiting='delete-spot';state.chatMessages.push({role:'ai',kind:'clarification',text:'你想删掉哪个景点？我只删除你指定的点，不会自动补入其他景点。'});render();return}
+        if(intent.type==='unknown'){state.chatMessages.push({role:'ai',kind:'text',text:'我能直接处理四类调整：降低 D2 强度、把北海湿地放到下午、删除指定景点，或保存雨天备选。你也可以继续用自然语言说明。'});render();return}
+        state.chatFlow.awaiting=null;const proposal=buildAiProposal(intent);state.chatFlow.proposals[proposal.id]=proposal;state.chatFlow.pendingProposalId=proposal.id;state.chatMessages.push({role:'ai',kind:'proposal',proposalId:proposal.id});render();
+      },420);
+    }
+    function renderProposal(proposal){
+      if(!proposal)return '';
+      const pending=proposal.status==='pending';
+      return `<section class="chat-proposal"><div class="proposal-head"><b>${escapeHtml(proposal.title)}</b><span>${pending?'待你确认':proposal.status==='applied'?'已应用':'已取消'}</span></div><p class="proposal-scope">${escapeHtml(proposal.scope)}</p><div class="proposal-compare"><article><small>调整前</small><p>${escapeHtml(proposal.before)}</p></article><div class="proposal-arrow">→</div><article><small>调整后</small><p>${escapeHtml(proposal.after)}</p></article></div><div class="proposal-metrics">${proposal.metrics.map(metric=>`<span>${escapeHtml(metric)}</span>`).join('')}</div><div class="proposal-safe">保持不变：${proposal.unchanged.map(escapeHtml).join(' · ')}</div>${pending?`<div class="proposal-actions" data-proposal-id="${proposal.id}"><button data-chat-action="cancel">取消</button><button data-chat-action="adjust">继续调整</button><button class="primary" data-chat-action="apply">${proposal.type==='rain-plan'?'保存为备选':'应用修改'}</button></div>`:''}</section>`;
+    }
+    function renderChatMessage(message){
+      if(message.kind==='thinking')return `<div class="chat-thinking"><span>${escapeHtml(message.text)}</span><span class="thinking-dots"><i></i><i></i><i></i></span></div>`;
+      if(message.kind==='proposal')return renderProposal(state.chatFlow.proposals[message.proposalId]);
+      if(message.kind==='clarification')return `<section class="chat-clarification"><b>还差一个信息</b><p>${escapeHtml(message.text)}</p><div class="clarify-actions"><button data-prompt="删除北海湿地">北海湿地</button><button data-prompt="删除叠水河瀑布">叠水河瀑布</button><button data-prompt="删除火山地质公园">火山公园</button></div></section>`;
+      if(message.kind==='applied')return `<section class="chat-result"><b>已完成并同步</b><p>${escapeHtml(message.text)}</p>${state.planSnapshot&&state.chatFlow.lastAppliedProposalId===message.proposalId?'<div class="result-actions"><button data-chat-action="undo">撤销这次修改</button></div>':''}</section>`;
+      if(message.kind==='cancelled')return `<section class="chat-result cancelled"><b>方案未应用</b><p>${escapeHtml(message.text)}</p></section>`;
+      return `<div class="chat-message ${message.role}">${escapeHtml(message.text)}</div>`;
     }
     function renderChat(){
-      const days=[
-        ['D1 和顺古镇','机场 → 和顺古镇 → 野鸭湖日落'],
-        ['D2 火山与湿地','火山公园 → 北海湿地 → 热海'],
-        ['D3 城市人文','国殇墓园 → 抗战纪念馆 → 叠水河'],
-        ['D4 和顺手工艺','市区午餐 → 还车 → 19:45返程']
-      ];
-      return header('问 AI 调整','AI 已读取当前计划，不会直接覆盖','<button class="text-btn" data-action="back">返回计划</button>')+`
+      const contextNames=['D1 和顺古镇','D2 火山与湿地','D3 城市人文','D4 和顺手工艺'];
+      return header('问 AI 调整','先看提案，确认后才改计划','<button class="text-btn" data-action="back">返回计划</button>')+`
         <div class="content chat-content">
-          <section class="chat-context"><div class="chat-context-head"><b>当前 4 天计划</b><span>上下文已载入</span></div><div class="context-days">${days.map(day=>`<div class="context-day"><b>${day[0]}</b>${day[1]}</div>`).join('')}</div><div class="constraint-strip"><span>🚗 租车</span><span>☀️ 不早起</span><span>🏡 D1 和顺住宿</span><span>✈️ D4 19:45返程</span></div></section>
-          <div class="chat-thread">${state.chatMessages.map(message=>`<div class="chat-message ${message.role}">${escapeHtml(message.text).replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/g,'<b>$1</b>')}</div>`).join('')}</div>
-          <div class="prompt-chips"><button class="prompt-chip" data-prompt="D2 不要太赶，但保留北海湿地">D2 不要太赶</button><button class="prompt-chip" data-prompt="把北海湿地改到下午去">北海湿地改到下午</button><button class="prompt-chip" data-prompt="准备一个下雨天的备选方案">准备雨天方案</button></div>
+          <section class="chat-context"><div class="chat-context-head"><b>当前 4 天计划</b><span>上下文已载入</span></div><div class="context-days">${state.planModel.map((day,index)=>`<div class="context-day"><b>${contextNames[index]}</b>${day.events.map(event=>event.name).join(' → ')}</div>`).join('')}</div><div class="constraint-strip"><span>🚗 租车</span><span>☀️ 不早起</span><span>🏡 D1 和顺住宿</span><span>✈️ D4 19:45返程</span></div></section>
+          <div class="chat-thread">${state.chatMessages.map(renderChatMessage).join('')}</div>
+          <div class="prompt-chips"><button class="prompt-chip" data-prompt="D2 不要太赶，但保留北海湿地">D2 不要太赶</button><button class="prompt-chip" data-prompt="把北海湿地改到下午去">北海湿地改到下午</button><button class="prompt-chip" data-prompt="删除一个景点">删除景点</button><button class="prompt-chip" data-prompt="准备一个下雨天的备选方案">准备雨天方案</button></div>
         </div>
-        <div class="chat-composer"><input class="chat-input" id="aiChatInput" autocomplete="off" placeholder="例如：D3 下午删掉叠水河"><button class="chat-send" data-action="send-chat" aria-label="发送">↑</button></div>`;
+        <div class="chat-composer"><input class="chat-input" id="aiChatInput" autocomplete="off" placeholder="例如：D2 轻松一点，但保留湿地"><button class="chat-send" data-action="send-chat" aria-label="发送">↑</button></div>`;
     }
     function renderEdit(){
       const impact = state.editDecision==='no'
@@ -781,6 +929,21 @@
         if(action==='save-edit'){if(state.editDecision==='no'){state.deleted=true;state.day=1;setScreen('detail');showSnack('已删除北海湿地；没有自动补入其他景点',true)}else{state.day=1;setScreen('detail');showSnack(`已调整至 ${state.editDay} ${state.editTime} · ${state.editOrder}`,false)}}
         if(action==='ai-order'){state.route='balanced';showSnack('已按住宿与全程距离生成顺路预览，尚未替你保存',false)}
         if(action==='manual-preview')setScreen('routes');
+      }
+      const chatAction=e.target.closest('[data-chat-action]');
+      if(chatAction){
+        const action=chatAction.dataset.chatAction;
+        const proposalId=chatAction.closest('[data-proposal-id]')?.dataset.proposalId;
+        if(action==='apply')applyAiProposal(proposalId);
+        if(action==='cancel'){
+          const proposal=state.chatFlow.proposals[proposalId];if(proposal)proposal.status='cancelled';
+          state.chatFlow.pendingProposalId=null;state.chatMessages.push({role:'ai',kind:'cancelled',text:'已取消这版预览，原计划保持不变。'});render();
+        }
+        if(action==='adjust'){
+          const proposal=state.chatFlow.proposals[proposalId];
+          requestAnimationFrame(()=>{const input=document.getElementById('aiChatInput');if(input){input.value=proposal?`继续调整：${proposal.title}，`:'继续调整：';input.focus()}});
+        }
+        if(action==='undo')undoAiProposal();
       }
       const f=e.target.closest('[data-filter]');if(f){state.filter=f.dataset.filter;render()}
       const s=e.target.closest('[data-spot]');if(s)toggleMust(s.dataset.spot);
