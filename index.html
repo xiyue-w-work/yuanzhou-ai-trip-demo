@@ -456,7 +456,7 @@
     function escapeHtml(value){return String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
     function buildAiReply(text){
       const prompt=text.toLowerCase();
-      if(prompt.includes('d2')&&(prompt.includes('不赶')||prompt.includes('轻松')))return '<b>调整预览 · D2 降低强度</b>\n10:30 火山公园（只走核心步道）→ 14:00 北海湿地 → 17:10 热海。\n\n预计少走 2.1 km、少开 35 分钟；三个核心体验都保留。住宿与 D4 19:45 返程不变。要应用这个版本吗？';
+      if(prompt.includes('d2')&&(prompt.includes('不要太赶')||prompt.includes('不赶')||prompt.includes('轻松')))return '<b>调整预览 · D2 降低强度</b>\n10:30 火山公园（只走核心步道）→ 14:00 北海湿地 → 17:10 热海。\n\n预计少走 2.1 km、少开 35 分钟；三个核心体验都保留。住宿与 D4 19:45 返程不变。要应用这个版本吗？';
       if(prompt.includes('北海湿地')&&prompt.includes('下午'))return '<b>调整预览 · 北海湿地改到下午</b>\nD2 顺序改为：火山公园 → 午餐 → 北海湿地 → 热海。北海湿地建议 14:00–16:00，仍然顺路，不新增折返。\n\n当前只生成预览，确认后我再更新计划。';
       if(prompt.includes('雨')||prompt.includes('下雨'))return '<b>备选预览 · 雨天方案</b>\n把 D3 的纪念馆与市区内容作为雨天日；火山、湿地根据逐小时天气与 D3 互换。\n\n酒店、租车和返程航班都不动，出发前一天再提醒你确认。';
       if(prompt.includes('不去')||prompt.includes('删除'))return '<b>删除影响预览</b>\n可以直接删掉这个点，不会自动补入新景点。我会只重算剩余地点的空间顺序，并告诉你空出的时间和减少的车程。请再告诉我是哪个景点。';
