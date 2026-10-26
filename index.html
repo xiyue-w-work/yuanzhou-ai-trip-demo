@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>圆周旅记｜先看懂，再出发</title>
+  <style>
+    :root {
+      --ink:#17191d;
+      --muted:#7d858e;
+      --line:#e8eaec;
+      --paper:#ffffff;
+      --canvas:#eef1ef;
+      --cyan:#14aee3;
+      --cyan-soft:#edf9fd;
+      --map:#e2f1dc;
+      --road:#f9fff8;
+      --green:#2c8b59;
+      --shadow:0 18px 50px rgba(22,38,48,.16);
+      --radius:28px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--canvas);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+    button,input{font:inherit}
+    button{border:0;cursor:pointer;color:inherit}
+    button:focus-visible{outline:3px solid rgba(32,189,242,.35);outline-offset:2px}
+    .demo-shell{min-height:100%;display:grid;place-items:center;padding:22px;background:#dfe4e1}
+    .prototype-note{display:none}
+    .eyebrow{font-size:13px;font-weight:800;letter-spacing:.12em;color:#129fd0;text-transform:uppercase}
+    .prototype-note h1{font-size:42px;line-height:1.1;margin:14px 0 18px;letter-spacing:-.04em}
+    .prototype-note p{font-size:17px;line-height:1.8;color:#5d646b;margin:0 0 20px}
+    .principles{display:grid;gap:10px;margin-top:26px}
+    .principle{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid #dfe4e1;border-radius:18px;background:rgba(255,255,255,.76)}
+    .principle b{font-size:14px}.principle span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+    .step-dot{width:29px;height:29px;display:grid;place-items:center;border-radius:50%;background:var(--ink);color:white;font-weight:800;font-size:12px;flex:0 0 auto}
+    .device{position:relative;width:min(390px,100vw);height:min(844px,calc(100dvh - 44px));min-height:680px;max-height:844px;background:#f7f8f7;border:7px solid #17191d;border-radius:48px;overflow:hidden;box-shadow:0 28px 80px rgba(22,38,48,.24)}
+    .device:after{content:"";position:absolute;z-index:60;left:50%;bottom:5px;transform:translateX(-50%);width:116px;height:4px;border-radius:6px;background:#111;pointer-events:none}
+    .statusbar{position:absolute;z-index:20;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:800;pointer-events:none}
+    .status-icons{display:flex;align-items:center;gap:7px}.signal{letter-spacing:-2px}.battery{border:2px solid #222;border-radius:5px;padding:1px 4px;font-size:10px}
+    .appbar{position:absolute;z-index:18;top:48px;left:0;right:0;height:60px;padding:0 18px;display:flex;align-items:center;justify-content:space-between}
+    .icon-btn{width:42px;height:42px;background:rgba(255,255,255,.9);border-radius:50%;display:grid;place-items:center;box-shadow:0 5px 18px rgba(25,40,50,.08)}
+    .icon{width:20px;height:20px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .brand-pill{height:36px;padding:0 14px;border-radius:18px;background:rgba(255,255,255,.92);display:flex;align-items:center;gap:7px;color:#1fb5e9;font-weight:800;font-size:13px;box-shadow:0 5px 18px rgba(25,40,50,.06)}
+    .brand-mark{width:19px;height:12px;background:#24bdf0;border-radius:2px 2px 8px 8px;position:relative}.brand-mark:after{content:"";position:absolute;right:3px;bottom:-2px;width:8px;height:8px;background:white;transform:rotate(18deg)}
+    .progress-track{position:absolute;z-index:19;top:104px;left:18px;right:18px;height:4px;border-radius:5px;background:rgba(255,255,255,.65);overflow:hidden}
+    .progress-bar{height:100%;width:12%;background:var(--cyan);transition:width .35s ease}
+    .map-stage{position:absolute;inset:0 0 45%;background:#edf2ef;overflow:hidden}
+    .amap-container{position:absolute;z-index:0;inset:0;opacity:0;pointer-events:none;transition:opacity .28s ease;background:#edf2ef}
+    .map-stage.amap-ready .amap-container{opacity:1;pointer-events:auto}
+    .map-stage.amap-ready .map-canvas{opacity:0;pointer-events:none}
+    .map-canvas{position:absolute;z-index:1;inset:0;transform-origin:50% 58%;touch-action:none;cursor:grab;will-change:transform;transition:transform .18s ease}
+    .map-canvas.is-dragging{cursor:grabbing;transition:none}
+    .map-canvas:before,.map-canvas:after{content:"";position:absolute;background:var(--road);border-radius:999px;opacity:.65;transform-origin:center}
+    .map-canvas:before{width:540px;height:9px;left:-90px;top:225px;transform:rotate(-13deg)}
+    .map-canvas:after{width:450px;height:7px;left:42px;top:135px;transform:rotate(67deg)}
+    .map-roads{position:absolute;inset:0;width:100%;height:100%}
+    .map-copy{position:absolute;z-index:6;top:112px;left:18px;max-width:235px;pointer-events:none}
+    .map-copy h2{font-size:23px;line-height:1.08;margin:0;letter-spacing:-.035em}.map-copy p{font-size:10px;color:#4b5b54;margin:6px 0 0;font-weight:700;line-height:1.4}
+    .map-legend{position:absolute;z-index:6;top:171px;left:18px;display:flex;gap:5px;align-items:flex-start;pointer-events:none}
+    .legend-chip{background:rgba(255,255,255,.94);padding:7px 10px;border-radius:12px;font-size:10px;font-weight:800;color:#4d5853;box-shadow:0 3px 12px rgba(45,70,55,.06)}
+    .pin-layer{position:absolute;z-index:5;inset:0}
+    .pin{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;padding:0;transition:transform .2s ease}
+    .pin:hover{transform:translate(-50%,-50%) scale(1.06)}
+    .pin-dot{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#168fbe;border:3px solid var(--cyan);font-size:10px;font-weight:900;box-shadow:0 4px 10px rgba(18,74,86,.16)}
+    .pin.is-must .pin-dot{background:var(--ink);color:#fff;border-color:#fff}.pin.is-route-step .pin-dot{background:var(--cyan);color:#fff;border-color:#fff}.pin.is-offroute .pin-dot{border-color:#aab8af;color:#7a8780;background:#f8fbf8;transform:scale(.84)}.pin.is-hidden{display:none}
+    .pin-label{display:none;white-space:nowrap;font-size:10px;font-weight:850;background:rgba(255,255,255,.96);padding:4px 7px;border-radius:8px;box-shadow:0 3px 8px rgba(20,45,35,.08)}
+    .pin.is-focused .pin-label{display:block}
+    .route-path{fill:none;stroke:var(--cyan);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 rgba(255,255,255,.85));transition:all .3s ease;opacity:0}
+    .map-stage.show-route .route-path{opacity:1}
+    .map-controls{position:absolute;z-index:8;right:15px;top:118px;width:38px;background:rgba(255,255,255,.96);border-radius:15px;box-shadow:0 6px 18px rgba(33,65,48,.12);overflow:hidden}
+    .map-controls button{width:38px;height:36px;background:transparent;font-size:19px;font-weight:700;border-bottom:1px solid #edf0ee}.map-controls button:last-child{border-bottom:0;font-size:16px}.map-controls button:active{background:#edf9fd}
+    .map-provider{position:absolute;z-index:8;right:60px;top:118px;height:31px;padding:0 10px;border-radius:11px;background:rgba(255,255,255,.96);box-shadow:0 5px 16px rgba(33,65,48,.1);font-size:9px;font-weight:850;color:#667078;backdrop-filter:blur(12px)}
+    .map-provider.loading{color:#168eb7}.map-provider.connected{background:rgba(23,25,29,.9);color:#fff}.map-provider.error{color:#b45d3c}
+    .real-map-item{position:relative;width:34px;height:34px;display:grid;place-items:center;background:transparent;padding:0;white-space:nowrap;cursor:pointer;overflow:visible}
+    .real-map-marker{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.98);color:#128ab5;border:2.5px solid #fff;font-size:10px;font-weight:900;box-shadow:0 0 0 2px #19ade0,0 6px 16px rgba(20,58,72,.2);transition:transform .18s ease,opacity .18s ease}
+    .real-map-item:hover .real-map-marker{transform:scale(1.08)}
+    .real-map-marker.must{background:var(--ink);color:#fff;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(23,25,29,.22),0 6px 16px rgba(20,38,48,.26)}
+    .real-map-marker.route{width:33px;height:33px;background:#10aee3;color:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(16,174,227,.22),0 8px 20px rgba(10,110,148,.25)}
+    .real-map-marker.route.must{background:var(--ink);box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(23,25,29,.2),0 8px 20px rgba(20,38,48,.26)}
+    .real-map-marker.offroute{width:21px;height:21px;border-color:#fff;color:#7e8884;background:#eef2f0;box-shadow:0 0 0 1px #aeb8b3,0 4px 10px rgba(38,58,48,.13);opacity:.72}
+    .real-map-label{position:absolute;z-index:-1;max-width:112px;overflow:hidden;text-overflow:ellipsis;background:rgba(255,255,255,.96);border:1px solid rgba(20,50,62,.07);border-radius:9px;padding:5px 8px;color:#222a2e;font-size:9px;line-height:1;font-weight:850;box-shadow:0 5px 14px rgba(20,45,55,.12);backdrop-filter:blur(10px);pointer-events:none}
+    .real-map-item.label-right .real-map-label{left:39px;top:50%;transform:translateY(-50%)}
+    .real-map-item.label-left .real-map-label{right:39px;top:50%;transform:translateY(-50%)}
+    .real-map-item.label-top .real-map-label{left:50%;bottom:42px;transform:translateX(-50%)}
+    .real-map-item.label-bottom .real-map-label{left:50%;top:42px;transform:translateX(-50%)}
+    .real-map-item.label-hidden .real-map-label{display:none}
+    .real-map-item:focus-visible .real-map-label,.real-map-item:hover .real-map-label{display:block}
+    .amap-logo,.amap-copyright{transform:scale(.72);transform-origin:left bottom}
+    .map-gesture-hint{position:absolute;z-index:6;left:50%;bottom:28%;transform:translateX(-50%);background:rgba(255,255,255,.9);border-radius:12px;padding:6px 9px;font-size:9px;color:#607067;font-weight:750;pointer-events:none;transition:opacity .25s ease;white-space:nowrap}.map-gesture-hint.hide{opacity:0}
+    .sheet{position:absolute;z-index:10;left:0;right:0;bottom:0;height:45%;background:var(--paper);border-radius:32px 32px 0 0;box-shadow:0 -8px 28px rgba(31,49,58,.08);display:flex;flex-direction:column;transition:height .25s ease;overflow:hidden}
+    #screenContent{display:contents}
+    #screenContent.entering .sheet-head,#screenContent.entering .tabs,#screenContent.entering .content,#screenContent.entering .bottom-actions{animation:screenIn .25s cubic-bezier(.2,.8,.2,1) both}
+    #screenContent.entering .tabs{animation-delay:.02s}#screenContent.entering .content{animation-delay:.04s}#screenContent.entering .bottom-actions{animation-delay:.06s}
+    @keyframes screenIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+    .grabber{width:44px;height:5px;background:#cbd0d1;border-radius:8px;margin:10px auto 4px;flex:0 0 auto}
+    .sheet-head{padding:10px 20px 8px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .sheet-head h3{font-size:24px;line-height:1.15;margin:0 0 5px;letter-spacing:-.03em}.sheet-head p{font-size:12px;color:var(--muted);margin:0;line-height:1.5}
+    .text-btn{background:#eff2f1;border-radius:16px;padding:9px 12px;font-size:12px;font-weight:800;white-space:nowrap}.text-btn.cyan{background:var(--cyan-soft);color:#138db8}
+    .tabs{display:flex;gap:8px;padding:7px 20px 11px;overflow:auto;scrollbar-width:none;flex:0 0 auto}.tabs::-webkit-scrollbar{display:none}
+    .tab{background:#f2f4f3;border-radius:14px;padding:9px 12px;font-size:12px;font-weight:750;white-space:nowrap}.tab.active{background:var(--ink);color:white}
+    .content{flex:1;overflow:auto;padding:0 20px 112px;scrollbar-width:none}.content::-webkit-scrollbar{display:none}
+    .spot-list{display:grid;gap:0;border:1px solid #edf0ee;border-radius:20px;overflow:hidden}
+    .spot-card{position:relative;width:100%;background:#fff;border:0;border-bottom:1px solid #edf0ee;border-radius:0;padding:11px;text-align:left;display:grid;grid-template-columns:58px 1fr auto;gap:11px;align-items:center;transition:.18s ease}
+    .spot-card:last-child{border-bottom:0}.spot-card:hover{background:#f8fbfc}.spot-card.selected{background:var(--cyan-soft)}
+    .thumb{width:58px;height:58px;border-radius:15px;background-size:cover;background-position:center;position:relative;overflow:hidden}.thumb:after{content:"";position:absolute;inset:0;border:1px solid rgba(0,0,0,.06);border-radius:inherit}
+    .spot-main{min-width:0}.spot-title{font-size:15px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.spot-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;font-size:10px;color:#657078}.tag{padding:3px 6px;border-radius:7px;background:#f1f3f2;font-weight:750;color:#667078}.tag.fit{color:#168eb7;background:var(--cyan-soft)}.tag.hot,.tag.saved{color:#667078}
+    .map-index{position:absolute;left:50px;top:7px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--cyan);color:#fff;font-size:9px;font-weight:900;border:2px solid #fff}
+    .choice-dot{width:29px;height:29px;border-radius:50%;background:white;border:1px solid #dfe4e2;display:grid;place-items:center;font-size:13px;font-weight:900}.spot-card.selected .choice-dot{background:var(--ink);color:white;border-color:var(--ink)}
+    .bottom-actions{position:absolute;z-index:15;left:0;right:0;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);display:grid;grid-template-columns:1fr 1.45fr;gap:10px;border-top:1px solid #eff1f0}
+    .btn{min-height:52px;border-radius:22px;font-weight:850;font-size:15px;padding:0 16px;transition:transform .12s ease,opacity .12s ease}.btn:active,.icon-btn:active,.tab:active,.spot-card:active,.transport-card:active,.route-card:active{transform:scale(.975)}.btn.secondary{background:#f1f3f2}.btn.primary{background:var(--ink);color:white}.btn.primary.cyan{background:var(--cyan);color:#083244}.btn[disabled]{opacity:.42;cursor:not-allowed}
+    .inline-count{font-size:11px;color:var(--muted);font-weight:650;display:block;margin-top:2px}
+    .banner{border-radius:20px;padding:14px 15px;margin-bottom:12px;background:#f6f8f7}.banner.cyan{background:var(--cyan-soft)}.banner b{display:block;font-size:14px;margin-bottom:4px}.banner p{margin:0;color:#657078;font-size:11px;line-height:1.55}
+    .import-card{background:#f8f9f8;border-radius:22px;padding:12px;display:grid;grid-template-columns:62px 1fr;gap:12px;margin:2px 0 12px}.import-collage{height:62px;border-radius:15px;background:#dce8d4;display:grid;grid-template-columns:1fr 1fr;gap:2px;overflow:hidden}.import-collage i:nth-child(1){background:#8cad74}.import-collage i:nth-child(2){background:#e4a575}.import-collage i:nth-child(3){background:#7ca2b4}.import-collage i:nth-child(4){background:#5a7553}.import-card b{font-size:14px;line-height:1.35}.import-card p{font-size:11px;color:var(--muted);margin:6px 0 0;line-height:1.5}
+    .transport-list,.route-list{display:grid;gap:10px}
+    .transport-card,.route-card{position:relative;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:22px;background:#fff;padding:14px 14px 13px;transition:.18s ease}.transport-card.selected,.route-card.selected{border-color:var(--cyan);background:var(--cyan-soft)}
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.card-name{display:flex;gap:10px;align-items:center}.mode-icon{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:#f0f3f3;font-size:20px}.transport-card.selected .mode-icon{background:#fff}.card-name b{font-size:16px}.recommend{font-size:9px;font-weight:850;padding:4px 6px;border-radius:7px;background:var(--cyan-soft);color:#168eb7}
+    .stats{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}.stat{background:#f4f6f5;border-radius:10px;padding:6px 8px;font-size:10px;font-weight:750}.selected .stat{background:#fff}
+    .card-desc{font-size:11px;color:#68727a;line-height:1.55;margin:0}.tradeoff{font-size:10px;color:#717b82;margin-top:7px;font-weight:750}
+    .anchor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.anchor-card{border:1px solid var(--line);border-radius:20px;padding:13px;background:#fff}.anchor-card b{font-size:13px}.anchor-card p{font-size:10px;color:var(--muted);line-height:1.5;margin:6px 0 10px}.segmented{display:grid;grid-template-columns:1fr 1fr;background:#f0f2f1;border-radius:11px;padding:3px}.segment{padding:8px 5px;border-radius:9px;background:transparent;font-size:10px;font-weight:800}.segment.active{background:#fff;box-shadow:0 2px 7px rgba(0,0,0,.06)}
+    .constraint{margin-top:10px;border:1px dashed #cbd3d0;border-radius:17px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px}.constraint button{background:#f0f3f1;padding:7px 9px;border-radius:10px;font-weight:800}
+    .route-card{padding:15px}.route-card .card-top b{font-size:17px}.route-card .mini-map{height:72px;border-radius:16px;background:#dff0d9;margin:12px 0;position:relative;overflow:hidden}.mini-map:before{content:"";position:absolute;width:120%;height:6px;background:white;left:-10%;top:35px;transform:rotate(-8deg);border-radius:9px}.mini-route{position:absolute;inset:0;width:100%;height:100%}.route-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.metric{background:#f4f6f5;border-radius:11px;padding:7px;text-align:center}.selected .metric{background:#fff}.metric b{font-size:12px;display:block}.metric span{font-size:9px;color:var(--muted)}.route-summary{font-size:10px;color:#687078;line-height:1.55;margin:9px 0 0}.route-fit{font-size:10px;color:#1b8dac;font-weight:800;margin-top:8px}
+    .day-strip{display:flex;gap:7px;padding:4px 0 12px;overflow:auto;scrollbar-width:none}.day-chip{min-width:67px;border-radius:14px;background:#f2f4f3;padding:9px 7px;text-align:center}.day-chip.active{background:var(--ink);color:#fff}.day-chip b{display:block;font-size:12px}.day-chip span{font-size:9px;color:#8c9498}.day-chip.active span{color:#c7cccf}
+    .day-overview{background:#f5f7f6;border-radius:18px;padding:12px;margin-bottom:12px}.day-overview .row{display:flex;justify-content:space-between;gap:8px}.day-overview b{font-size:14px}.day-overview p{font-size:10px;color:#687078;line-height:1.55;margin:7px 0 0}
+    .timeline{display:grid}.event{position:relative;display:grid;grid-template-columns:43px 1fr;gap:10px;padding-bottom:15px}.event:before{content:"";position:absolute;left:20px;top:34px;bottom:-1px;width:2px;background:#e2e7e4}.event:last-child:before{display:none}.event-time{font-size:10px;color:#7a8388;font-weight:800;padding-top:7px}.event-card{border:1px solid #edf0ee;border-radius:17px;padding:11px;background:#fff;text-align:left}.event-card b{font-size:13px}.event-card p{font-size:10px;color:#717b82;line-height:1.5;margin:6px 0 0}.event-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.event-meta span{font-size:9px;background:#f2f4f3;padding:4px 6px;border-radius:7px}.risk{color:#b7633d!important;background:#fff0e8!important}.event-card.deleted{display:none}
+    .edit-hero{background:#f5f7f6;border-radius:22px;padding:14px;margin-bottom:12px;display:grid;grid-template-columns:60px 1fr;gap:12px}.edit-hero .thumb{width:60px;height:60px}.edit-hero b{font-size:16px}.edit-hero p{font-size:10px;color:#677169;line-height:1.5;margin:5px 0 0}
+    .decision{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}.decision button{border:1.5px solid var(--line);border-radius:17px;background:#fff;padding:12px;font-weight:850}.decision button.active{background:var(--ink);border-color:var(--ink);color:#fff}.decision button.no.active{background:#fff1ec;color:#c95529;border-color:#ffb99e}
+    .form-block{border-top:1px solid var(--line);padding:13px 0}.form-label{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:850;margin-bottom:9px}.form-label small{font-size:9px;color:var(--muted);font-weight:650}.option-row{display:flex;gap:7px;overflow:auto;scrollbar-width:none}.option{white-space:nowrap;background:#f1f3f2;border-radius:12px;padding:9px 10px;font-size:10px;font-weight:800}.option.active{background:var(--cyan-soft);color:#148db5;border:1px solid #aee7f8;padding:8px 9px}
+    .impact{background:#f5f7f6;border-radius:18px;padding:12px;margin-top:4px}.impact b{font-size:12px}.impact p{font-size:10px;color:#647078;line-height:1.55;margin:6px 0 0}.impact.good{background:var(--cyan-soft)}.impact.warn{background:#fff5ef}.impact.danger{background:#fff0ed}
+    .manual-pool{display:flex;gap:8px;overflow:auto;padding-bottom:12px;scrollbar-width:none}.pool-card{min-width:125px;background:#f5f7f6;border-radius:17px;padding:10px}.pool-card b{font-size:11px;display:block}.pool-card span{font-size:9px;color:var(--muted);display:block;margin:4px 0 8px}.pool-card button{background:#fff;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:850}
+    .chat-content{padding-bottom:94px}.chat-context{border:1px solid #e4e9e7;border-radius:20px;background:#f7f9f8;margin-bottom:13px;overflow:hidden}.chat-context-head{display:flex;align-items:center;justify-content:space-between;padding:11px 12px 8px}.chat-context-head b{font-size:12px}.chat-context-head span{font-size:9px;color:#168eb7;background:var(--cyan-soft);padding:4px 7px;border-radius:8px;font-weight:850}.context-days{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 10px 10px}.context-day{background:#fff;border-radius:12px;padding:8px 9px;font-size:9px;line-height:1.45;color:#626c72}.context-day b{display:block;color:#24292d;font-size:10px;margin-bottom:2px}.constraint-strip{display:flex;gap:5px;padding:0 10px 10px;overflow:auto;scrollbar-width:none}.constraint-strip span{white-space:nowrap;background:#ecefed;border-radius:9px;padding:5px 7px;font-size:8px;font-weight:800;color:#60696e}.chat-thread{display:grid;gap:9px;margin-bottom:11px}.chat-message{max-width:88%;padding:10px 12px;border-radius:16px;font-size:10px;line-height:1.58;white-space:pre-line}.chat-message.ai{justify-self:start;background:#f0f3f2;border-bottom-left-radius:5px;color:#4e5960}.chat-message.user{justify-self:end;background:var(--ink);border-bottom-right-radius:5px;color:#fff}.chat-message b{font-size:11px;color:inherit}.prompt-chips{display:flex;gap:7px;overflow:auto;scrollbar-width:none;padding-bottom:5px}.prompt-chip{white-space:nowrap;background:#fff;border:1px solid #dfe5e3;border-radius:13px;padding:8px 10px;font-size:9px;font-weight:800;color:#4e5a60}.chat-composer{position:absolute;z-index:16;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 42px;gap:8px;padding:10px 16px calc(11px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border-top:1px solid #edf0ef}.chat-input{height:42px;border:1px solid #dfe5e3;border-radius:16px;background:#f5f7f6;padding:0 13px;font-size:11px;outline:none}.chat-input:focus{background:#fff;border-color:#8edcf4}.chat-send{height:42px;border-radius:15px;background:var(--ink);color:#fff;font-size:18px;font-weight:900}.device.is-chat .map-stage{inset:0 0 65%}.device.is-chat .sheet{height:65%;border-radius:27px 27px 0 0}.device.is-chat .map-copy{top:96px}.device.is-chat .map-legend{top:151px}.device.is-chat .map-controls{top:101px}.device.is-chat .map-provider{top:101px}.device.is-chat .map-gesture-hint{bottom:18%}
+    .snackbar{position:absolute;z-index:30;left:16px;right:16px;bottom:82px;background:#202326;color:#fff;border-radius:18px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;transform:translateY(140px);opacity:0;transition:.25s ease;font-size:12px;font-weight:750}.snackbar.show{transform:translateY(0);opacity:1}.snackbar button{background:transparent;color:var(--cyan);font-weight:850}
+    .modal{position:absolute;z-index:40;inset:0;background:rgba(19,25,28,.42);display:grid;align-items:end;opacity:0;pointer-events:none;transition:.2s ease}.modal.show{opacity:1;pointer-events:auto}.modal-card{background:white;border-radius:30px 30px 0 0;padding:13px 20px calc(22px + env(safe-area-inset-bottom));transform:translateY(30px);transition:.25s ease}.modal.show .modal-card{transform:translateY(0)}.modal-card h3{font-size:22px;margin:8px 0}.modal-card p{font-size:12px;line-height:1.6;color:#657078;margin:0 0 15px}.modal-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:9px}
+    .api-form{display:grid;gap:10px;margin:10px 0 14px}.api-field{display:grid;gap:6px}.api-field span{font-size:11px;font-weight:850}.api-field input{width:100%;height:44px;border:1px solid #dfe4e2;border-radius:14px;padding:0 12px;font-size:12px;background:#f8f9f8;outline:none}.api-field input:focus{border-color:var(--cyan);background:#fff}.api-note{font-size:10px!important;line-height:1.55!important;margin:0!important;background:#f5f7f6;border-radius:13px;padding:10px}.api-link{color:#138db8;text-decoration:none;font-weight:800}
+    .screen{display:none}.screen.active{display:contents}
+    .micro-hint{position:absolute;z-index:16;top:112px;left:50%;transform:translateX(-50%);background:#fff;border-radius:15px;padding:8px 10px;font-size:10px;font-weight:800;box-shadow:0 5px 15px rgba(20,40,50,.12);white-space:nowrap}
+    @media(max-width:430px){html,body{background:#f7f8f7}.demo-shell{display:block;padding:0}.device{width:100vw;height:100dvh;min-height:620px;max-height:none;border:0;border-radius:0;box-shadow:none}.device:after{bottom:4px}.sheet{height:45%}}
+    @media(max-height:740px){.map-stage{inset:0 0 45%}.sheet{height:45%}.statusbar{height:40px}.appbar{top:40px}.progress-track{top:94px}.map-copy{top:98px}.map-legend{top:153px}.map-controls{top:102px}.sheet-head h3{font-size:21px}.content{padding-bottom:92px}.bottom-actions{padding-top:9px}.btn{min-height:46px}}
+    .device.is-chat .map-stage{inset:0 0 65%}.device.is-chat .sheet{height:65%}
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></symbol>
+  </svg>
+  <main class="demo-shell">
+    <aside class="prototype-note">
+      <div class="eyebrow">YUANZHOU AI TRIP PLANNER · INTERACTIVE DEMO</div>
+      <h1>先看懂目的地，<br>再决定怎么走。</h1>
+      <p>这不是一份“AI替你写完”的长答案。用户先建立空间认知，再选择交通与路线，最后才进入逐日计划。AI负责计算、解释和预警，决定权始终留给用户。</p>
+      <div class="principles">
+        <div class="principle"><div class="step-dot">1</div><div><b>空间先于日程</b><span>热门、适合我、已收藏，同图比较</span></div></div>
+        <div class="principle"><div class="step-dot">2</div><div><b>方案先于细节</b><span>先选路线性格，再展开逐日安排</span></div></div>
+        <div class="principle"><div class="step-dot">3</div><div><b>修改先看影响</b><span>去／不去、时间、顺序，实时解释代价</span></div></div>
+      </div>
+    </aside>
+
+    <section class="device" aria-label="圆周旅记 AI 规划交互原型">
+      <div class="statusbar"><span>09:41</span><span class="status-icons"><span class="signal">▮▮▮▮</span><span>⌁</span><span class="battery">76</span></span></div>
+      <header class="appbar">
+        <button class="icon-btn" id="backBtn" aria-label="返回"><svg class="icon"><use href="#i-back"/></svg></button>
+        <div class="brand-pill"><span class="brand-mark"></span>圆周旅记</div>
+        <button class="icon-btn" id="resetBtn" aria-label="重置体验"><svg class="icon"><use href="#i-refresh"/></svg></button>
+      </header>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+
+      <section class="map-stage" id="mapStage">
+        <div class="amap-container" id="amapContainer" aria-label="高德地图"></div>
+        <div class="map-canvas" id="mapCanvas">
+          <svg class="map-roads" viewBox="0 0 420 420" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M-20 330 C80 240 115 290 180 210 S280 110 450 150" fill="none" stroke="#f8fff6" stroke-width="10"/>
+            <path d="M55 20 C110 90 95 140 160 165 S275 220 345 410" fill="none" stroke="#f8fff6" stroke-width="8"/>
+            <path d="M15 130 C90 165 150 90 230 130 S340 250 425 230" fill="none" stroke="#d5e9d1" stroke-width="4" stroke-dasharray="7 7"/>
+            <path id="routePath" class="route-path" d=""/>
+          </svg>
+          <div class="pin-layer" id="pinLayer"></div>
+        </div>
+        <div class="map-copy"><h2 id="mapTitle">先把腾冲看懂</h2><p id="mapSubtitle">热门区域、距离和你的偏好放在一张图里</p></div>
+        <div class="map-legend" id="mapLegend"><span class="legend-chip">● 全网综合</span><span class="legend-chip">★ 适合你</span></div>
+        <button class="map-provider loading" id="mapProvider" type="button">高德地图 · 加载中</button>
+        <div class="map-controls" aria-label="地图缩放控件">
+          <button data-map-control="in" aria-label="放大地图">＋</button>
+          <button data-map-control="out" aria-label="缩小地图">−</button>
+          <button data-map-control="fit" aria-label="显示全部点位">⌗</button>
+        </div>
+        <div class="map-gesture-hint" id="mapHint">双指缩放 · 拖动地图</div>
+      </section>
+
+      <section class="sheet">
+        <div class="grabber"></div>
+        <div id="screenContent"></div>
+      </section>
+
+      <div class="snackbar" id="snackbar"><span id="snackbarText"></span><button id="snackbarAction">撤销</button></div>
+      <div class="modal" id="modal"><div class="modal-card" id="modalCard"></div></div>
+    </section>
+  </main>
+
+  <script>
+    const spots = [
+      {id:'heshun',name:'和顺古镇',region:'西南 · 侨乡古镇',score:'全网综合 4.8',match:'适合你 92%',saved:true,x:24,y:61,lnglat:[98.456754,25.009423],poiSource:'高德地图 Web POI',poiId:'B036B005AX',img:'https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=180&q=80'},
+      {id:'resea',name:'热海大滚锅',region:'西南 · 地热景观',score:'全网综合 4.7',match:'适合你 78%',saved:true,x:37,y:78,lnglat:[98.438520,24.950641],poiSource:'高德地图 Web POI',poiId:'B0I0YOY0ZN',img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=180&q=80'},
+      {id:'wetland',name:'北海湿地',region:'城北 · 高原湿地',score:'全网综合 4.6',match:'适合你 96%',saved:true,x:52,y:36,lnglat:[98.558897,25.120384],poiSource:'高德地图 Web POI · 景区站',poiId:'BV11553143',img:'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=180&q=80'},
+      {id:'volcano',name:'火山地质公园',region:'城北 · 火山群',score:'全网综合 4.6',match:'适合你 81%',saved:false,x:46,y:20,lnglat:[98.508491,25.231938],poiSource:'Web 综合检索 · 景区入口',poiId:'tengchong-volcano',img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=180&q=80'},
+      {id:'memorial',name:'国殇墓园',region:'市区 · 历史人文',score:'全网综合 4.7',match:'适合你 88%',saved:true,x:49,y:58,lnglat:[98.481143,25.025941],poiSource:'高德地图 Web POI',poiId:'B036B0N9DA',img:'https://images.unsplash.com/photo-1518391846015-55a9cc003b25?auto=format&fit=crop&w=180&q=80'},
+      {id:'waterfall',name:'叠水河瀑布',region:'市区 · 城市自然',score:'全网综合 4.5',match:'适合你 83%',saved:false,x:58,y:64,lnglat:[98.480818,25.029286],poiSource:'高德地图 Web POI',poiId:'B036B005AW',img:'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=180&q=80'},
+      {id:'ginkgo',name:'江东银杏村',region:'东北 · 季节限定',score:'全网综合 4.4',match:'适合你 64%',saved:true,x:77,y:22,lnglat:[98.513280,25.291090],poiSource:'Web 综合检索 · 游客中心',poiId:'jiangdong-ginkgo',img:'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=180&q=80'}
+    ];
+    const state = {
+      screen:'import', history:[], filter:'all', focusSpot:'heshun', must:new Set(['heshun']), transport:'car', route:'balanced', day:0,
+      imported:false, hotel:'yes', flight:'no', editDecision:'go', editDay:'10.24', editTime:'上午', editOrder:'AI顺路', deleted:false,
+      chatMessages:[{role:'ai',text:'我已经读取当前 4 天计划和固定约束。你可以告诉我想改哪天、上午或下午、空间顺序，或者直接删掉某个点。\n\n我会先给你修改预览，不会直接覆盖计划。'}]
+    };
+    const screenOrder=['import','overview','transport','routes','detail','chat','edit'];
+    const device=document.querySelector('.device');
+    const screenContent=document.getElementById('screenContent');
+    const pinLayer=document.getElementById('pinLayer');
+    const mapCanvas=document.getElementById('mapCanvas');
+    const mapStage=document.getElementById('mapStage');
+    const mapProvider=document.getElementById('mapProvider');
+    const mapHint=document.getElementById('mapHint');
+    const modal=document.getElementById('modal');
+    const snackbar=document.getElementById('snackbar');
+    const mapTitle=document.getElementById('mapTitle');
+    const mapSubtitle=document.getElementById('mapSubtitle');
+    const mapLegend=document.getElementById('mapLegend');
+    const routePath=document.getElementById('routePath');
+    const progressBar=document.getElementById('progressBar');
+    const mapView={scale:1,x:0,y:0};
+    const mapPointers=new Map();
+    const AMAP_STORAGE_KEY='yuanzhou_amap_config';
+    const DEFAULT_AMAP_CONFIG={key:'6258a4013208ccd222434f98df92e67b',securityJsCode:'c74b7e3a4748abf69aea1edbd463a067'};
+    const markerLabelSide={heshun:'left',resea:'left',wetland:'right',volcano:'top',memorial:'left',waterfall:'right',ginkgo:'right'};
+    const markerPixelOffset={heshun:[-26,20],memorial:[18,-13],waterfall:[18,8]};
+    const amapState={AMap:null,map:null,markers:[],polyline:null,ready:false,loading:false,lastSignature:''};
+    let mapGesture={startX:0,startY:0,originX:0,originY:0,distance:0,scale:1,moved:false};
+    let snackTimer;
+
+    function iconCheck(){return '<svg class="icon" style="width:15px;height:15px"><use href="#i-check"/></svg>'}
+    function setScreen(next,push=true){
+      if(push && state.screen!==next) state.history.push(state.screen);
+      state.screen=next; resetMapView(false); render();
+    }
+    function goBack(){
+      if(state.history.length){state.screen=state.history.pop();resetMapView(false);render()}
+      else if(state.screen!=='import'){state.screen='import';resetMapView(false);render()}
+    }
+    function reset(){
+      Object.assign(state,{screen:'import',history:[],filter:'all',focusSpot:'heshun',transport:'car',route:'balanced',day:0,imported:false,hotel:'yes',flight:'no',editDecision:'go',editDay:'10.24',editTime:'上午',editOrder:'AI顺路',deleted:false,chatMessages:[{role:'ai',text:'我已经读取当前 4 天计划和固定约束。你可以告诉我想改哪天、上午或下午、空间顺序，或者直接删掉某个点。\n\n我会先给你修改预览，不会直接覆盖计划。'}]});
+      state.must=new Set(['heshun']); hideModal(); hideSnack(); resetMapView(true); render();
+    }
+    function showSnack(text,action=true){
+      clearTimeout(snackTimer);document.getElementById('snackbarText').textContent=text;document.getElementById('snackbarAction').style.display=action?'block':'none';snackbar.classList.add('show');
+      snackTimer=setTimeout(hideSnack,4200);
+    }
+    function hideSnack(){snackbar.classList.remove('show')}
+    function showModal(html){document.getElementById('modalCard').innerHTML=html;modal.classList.add('show')}
+    function hideModal(){modal.classList.remove('show')}
+    function currentStep(){return Math.max(0,screenOrder.indexOf(state.screen))}
+    function getVisibleSpots(){
+      let visible=spots.filter(s=>!(state.deleted&&s.id==='wetland'));
+      if(state.screen==='overview') visible=visible.filter(s=>state.filter==='fit'?parseInt(s.match.match(/\d+/)[0])>=85:state.filter==='saved'?s.saved:true);
+      return visible;
+    }
+    function loadExternalScript(src,id){
+      if(window.AMapLoader)return Promise.resolve();
+      return new Promise((resolve,reject)=>{
+        const old=document.getElementById(id);
+        if(old){old.addEventListener('load',resolve,{once:true});old.addEventListener('error',()=>reject(new Error('高德 Loader 加载失败')),{once:true});return}
+        const script=document.createElement('script');script.id=id;script.src=src;script.async=true;
+        const timer=setTimeout(()=>reject(new Error('高德 Loader 加载超时')),15000);
+        script.onload=()=>{clearTimeout(timer);resolve()};script.onerror=()=>{clearTimeout(timer);script.remove();reject(new Error('高德 Loader 加载失败'))};document.head.appendChild(script);
+      });
+    }
+    function fallbackToSchematicMap(message='已切回离线示意地图'){
+      amapState.ready=false;amapState.loading=false;mapStage.classList.remove('amap-ready');mapProvider.className='map-provider error';mapProvider.textContent='高德地图 · 重试';mapHint.classList.remove('hide');
+      if(message)showSnack(message,false);
+    }
+    function fitAmapView(){
+      if(!amapState.ready||!amapState.map)return;
+      const overlays=[...amapState.markers];if(amapState.polyline)overlays.push(amapState.polyline);
+      if(overlays.length)amapState.map.setFitView(overlays,false,[178,48,58,48],12.8);
+    }
+    function syncAmapOverlays(forceFit=false){
+      if(!amapState.ready||!amapState.map||!amapState.AMap)return;
+      const visible=getVisibleSpots(),routeIds=getRouteIds(),showRoute=['routes','detail','edit','chat'].includes(state.screen)&&routeIds.length>1;
+      const signature=JSON.stringify([state.screen,state.filter,state.route,state.day,state.deleted,state.editOrder,[...state.must],state.focusSpot]);
+      if(signature===amapState.lastSignature&&!forceFit)return;
+      const old=[...amapState.markers];if(amapState.polyline)old.push(amapState.polyline);if(old.length)amapState.map.remove(old);
+      amapState.markers=visible.map((s,i)=>{
+        const routeIndex=routeIds.indexOf(s.id),markerText=showRoute?(routeIndex>=0?routeIndex+1:'·'):(state.must.has(s.id)?'✓':i+1);
+        const showLabel=!showRoute||routeIndex===0||routeIndex===routeIds.length-1||(routeIndex>=0&&routeIds.length<=3)||state.focusSpot===s.id;
+        const content=document.createElement('button');content.type='button';content.className=`real-map-item label-${markerLabelSide[s.id]||'right'} ${showLabel?'':'label-hidden'}`;content.setAttribute('aria-label',s.name);
+        content.innerHTML=`<span class="real-map-marker ${state.must.has(s.id)?'must':''} ${routeIndex>=0?'route':''} ${showRoute&&routeIndex<0?'offroute':''}">${markerText}</span><span class="real-map-label">${s.name}</span>`;
+        content.addEventListener('click',()=>openSpotModal(s));
+        const offset=markerPixelOffset[s.id]||[0,0];
+        return new amapState.AMap.Marker({position:s.lnglat,content,anchor:'center',offset:new amapState.AMap.Pixel(offset[0],offset[1]),title:s.name,zIndex:routeIndex===0?170:(routeIndex>=0?150:(state.must.has(s.id)?140:110))});
+      });
+      amapState.map.add(amapState.markers);amapState.polyline=null;
+      if(showRoute){
+        const path=routeIds.map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(s=>s.lnglat);
+        amapState.polyline=new amapState.AMap.Polyline({path,strokeColor:'#0ea9df',strokeOpacity:.98,strokeWeight:5,isOutline:true,outlineColor:'rgba(255,255,255,.98)',borderWeight:4,showDir:true,strokeStyle:(state.screen==='routes'&&state.route==='theme')?'dashed':'solid',lineJoin:'round',lineCap:'round',zIndex:90});
+        amapState.map.add(amapState.polyline);
+      }
+      amapState.lastSignature=signature;
+      if(forceFit||signature!==amapState.lastSignature)fitAmapView();else requestAnimationFrame(fitAmapView);
+    }
+    async function initAmap(config){
+      if(amapState.loading||amapState.ready||!config?.key||!config?.securityJsCode)return;
+      amapState.loading=true;mapProvider.className='map-provider loading';mapProvider.textContent='高德地图 · 加载中';
+      try{
+        window._AMapSecurityConfig={securityJsCode:config.securityJsCode};
+        await loadExternalScript('https://webapi.amap.com/loader.js','amap-jsapi-loader');
+        const AMap=await window.AMapLoader.load({key:config.key,version:'2.0',plugins:['AMap.Scale']});
+        amapState.AMap=AMap;amapState.map=new AMap.Map('amapContainer',{viewMode:'2D',center:[98.50,25.09],zoom:10.2,zooms:[8.5,18],resizeEnable:true,showLabel:false,features:['bg','road','building'],mapStyle:'amap://styles/whitesmoke'});
+        amapState.map.addControl(new AMap.Scale({position:'LB'}));amapState.ready=true;amapState.loading=false;amapState.lastSignature='';mapStage.classList.add('amap-ready');mapProvider.className='map-provider connected';mapProvider.textContent='高德地图 · 已连接';mapHint.classList.add('hide');
+        syncAmapOverlays(true);setTimeout(()=>{amapState.map.resize();fitAmapView()},120);
+      }catch(error){console.warn('[圆周旅记] 高德地图不可用，使用离线示意地图',error);fallbackToSchematicMap('高德地图连接失败，已保留可交互示意地图')}
+    }
+    function readAmapConfig(){try{return JSON.parse(localStorage.getItem(AMAP_STORAGE_KEY)||'null')}catch{return null}}
+    function showAmapConfig(){
+      const saved=readAmapConfig()||DEFAULT_AMAP_CONFIG;
+      showModal(`<h3>高德真实地图</h3><p>Demo 已内置当前提供的 Web 端 JS API 凭证，打开即自动连接。你也可以在这台设备上临时更换。</p><div class="api-form"><label class="api-field"><span>Web 端 JS API Key</span><input id="amapKeyInput" type="password" autocomplete="off" value="${saved.key||''}" placeholder="请输入 Key"></label><label class="api-field"><span>securityJsCode</span><input id="amapSecurityInput" type="password" autocomplete="off" value="${saved.securityJsCode||''}" placeholder="请输入安全密钥"></label><p class="api-note">凭证已写入此 Demo 文件，仅适合内部原型。正式上线应按高德要求使用安全代理。<br><a class="api-link" href="https://lbs.amap.com/api/javascript-api-v2/guide/abc/load" target="_blank" rel="noreferrer">查看高德官方接入说明</a></p></div><div class="modal-actions"><button class="btn secondary" data-modal="offline">继续用示意地图</button><button class="btn primary" data-modal="connect">重新连接</button></div>`);
+      document.querySelector('[data-modal="offline"]').onclick=hideModal;
+      document.querySelector('[data-modal="connect"]').onclick=()=>{
+        const config={key:document.getElementById('amapKeyInput').value.trim(),securityJsCode:document.getElementById('amapSecurityInput').value.trim()};
+        if(!config.key||!config.securityJsCode){showSnack('请同时填写 Key 和 securityJsCode',false);return}
+        try{localStorage.setItem(AMAP_STORAGE_KEY,JSON.stringify(config))}catch{}
+        hideModal();initAmap(config);
+      };
+    }
+    function openSpotModal(s){
+      state.focusSpot=s.id;renderPins();showModal(`<h3>${s.name}</h3><p>${s.region} · ${s.score} · ${s.match}<br>${s.saved?'你收藏的 2 篇笔记提到这里。':'全网旅行内容中高频出现。'}<br>点位：${s.poiSource}</p><div class="modal-actions"><button class="btn secondary" data-modal="close">继续看地图</button><button class="btn primary" data-modal="must">${state.must.has(s.id)?'取消必去':'设为必去'}</button></div>`);
+      document.querySelector('[data-modal="close"]').onclick=hideModal;document.querySelector('[data-modal="must"]').onclick=()=>{toggleMust(s.id);hideModal()};
+    }
+    function mapPoint(spot){
+      return {x:14+((spot.x-24)/53)*64,y:38+((spot.y-20)/58)*35};
+    }
+    function applyMapTransform(){
+      mapCanvas.style.transform=`translate3d(${mapView.x}px,${mapView.y}px,0) scale(${mapView.scale})`;
+    }
+    function zoomMap(delta){
+      mapView.scale=Math.max(.85,Math.min(2.4,mapView.scale+delta));
+      applyMapTransform();mapHint.classList.add('hide');
+    }
+    function resetMapView(showHint=true){
+      mapView.scale=1;mapView.x=0;mapView.y=0;applyMapTransform();
+      if(showHint)mapHint.classList.remove('hide');
+    }
+    function updateMap(){
+      const configs={
+        import:['为腾冲建一个收藏池','先收集，不急着塞进某一天'],
+        overview:['腾冲一图看懂','热门区域、距离和你的偏好放在一张图里'],
+        transport:['当地怎么走','先决定主交通，AI才知道如何计算路线'],
+        routes:['3 种路线方向','先选旅行的性格，再展开每天'],
+        detail:['4 天空间总览','每天一个片区，减少折返'],
+        chat:['AI 调整行程','当前计划与固定约束已载入'],
+        edit:['调整后会怎样','先看路线影响，再确认修改'],
+        manual:['手动规划工作台','你决定去哪，AI只负责算顺路']
+      };
+      const [t,s]=configs[state.screen]||configs.overview;mapTitle.textContent=t;mapSubtitle.textContent=s;
+      progressBar.style.width=((currentStep()+1)/screenOrder.length*100)+'%';
+      const routeIds=getRouteIds();
+      const showRoute=['routes','detail','edit','chat'].includes(state.screen) && routeIds.length>1;
+      mapStage.classList.toggle('show-route',showRoute);
+      routePath.className.baseVal='route-path';
+      if(showRoute){
+        const points=routeIds.map(id=>spots.find(s=>s.id===id)).filter(Boolean).map(mapPoint);
+        routePath.setAttribute('d',points.map((p,i)=>`${i?'L':'M'} ${Math.round(p.x*4.2)} ${Math.round(p.y*4.2)}`).join(' '));
+        routePath.style.strokeDasharray=(state.screen==='routes'&&state.route==='theme')?'7 7':'0';
+      }
+      mapLegend.innerHTML= state.screen==='routes'?'<span class="legend-chip">蓝线＝当前方案</span>': state.screen==='detail'?`<span class="legend-chip">D${state.day+1} · ${routeIds.length>1?'按序连接':'单一区域'}</span>`:state.screen==='chat'?'<span class="legend-chip">已载入当前计划</span>':state.screen==='edit'?'<span class="legend-chip">调整影响预览</span>':'<span class="legend-chip">此时只看空间，不画路线</span>';
+    }
+    function getRouteIds(){
+      if(state.screen==='routes') return state.route==='relaxed'?['heshun','wetland','resea']:state.route==='theme'?['heshun','memorial','waterfall','wetland']:['heshun','memorial','volcano','wetland','resea'];
+      if(state.screen==='detail') return [['heshun'],['volcano','wetland','resea'],['memorial','waterfall','resea'],['heshun']][state.day];
+      if(state.screen==='chat') return state.route==='relaxed'?['heshun','wetland','resea']:state.route==='theme'?['heshun','memorial','waterfall','wetland']:['heshun','memorial','volcano','wetland','resea'];
+      if(state.screen==='edit') return state.editOrder==='我来排序'?['volcano','resea','wetland']:['volcano','wetland','resea'];
+      return [];
+    }
+    function renderPins(){
+      const routeIds=getRouteIds();
+      const visible=getVisibleSpots();
+      const showRoute=['routes','detail','edit','chat'].includes(state.screen)&&routeIds.length>1;
+      pinLayer.innerHTML=visible.map((s,i)=>{
+        const p=mapPoint(s);const routeIndex=routeIds.indexOf(s.id);
+        const marker=showRoute?(routeIndex>=0?routeIndex+1:'·'):(state.must.has(s.id)?'✓':i+1);
+        return `<button class="pin ${state.must.has(s.id)?'is-must':''} ${state.focusSpot===s.id?'is-focused':''} ${routeIndex>=0?'is-route is-route-step':''} ${showRoute&&routeIndex<0?'is-offroute':''}" style="left:${p.x}%;top:${p.y}%" data-pin="${s.id}" aria-label="${s.name}"><span class="pin-dot">${marker}</span><span class="pin-label">${s.name}</span></button>`;
+      }).join('');
+      syncAmapOverlays();
+    }
+    function header(title,sub,right=''){return `<div class="sheet-head"><div><h3>${title}</h3><p>${sub}</p></div>${right}</div>`}
+    function actions(left,leftAction,right,rightAction,disabled=false){return `<div class="bottom-actions"><button class="btn secondary" data-action="${leftAction}">${left}</button><button class="btn primary" data-action="${rightAction}" ${disabled?'disabled':''}>${right}</button></div>`}
+    function renderImport(){
+      return header('发现你的腾冲灵感','8 篇收藏与这次目的地相关','<button class="text-btn" data-action="skip-import">先跳过</button>')+`
+        <div class="content">
+          <div class="banner cyan"><b>收藏先进入旅行收藏池</b><p>不会自动塞进某一天。等你看懂空间、选完交通后，AI再帮你把它们分布到整个行程。</p></div>
+          <div class="import-card"><div class="import-collage"><i></i><i></i><i></i><i></i></div><div><b>腾冲四天三晚｜古镇、温泉与湿地</b><p>识别到 9 个地点 · 其中 6 个可与地图 POI 匹配</p></div></div>
+          <div class="import-card"><div class="import-collage"><i></i><i></i><i></i><i></i></div><div><b>不早起的腾冲玩法｜每天一个片区</b><p>识别到 7 个地点 · 含 2 条路线建议</p></div></div>
+          <div class="banner"><b>为什么先不排日程？</b><p>一篇游记通常包含多天、多个地点。先进入收藏池，才能结合你的 4 天行程、住宿与交通做整体安排。</p></div>
+        </div>${actions('查看来源','open-source','导入 2 篇收藏','import-notes')}`;
+    }
+    function filteredSpots(){
+      return spots.filter(s=>{
+        if(state.filter==='fit')return parseInt(s.match.match(/\d+/)[0])>=85;
+        if(state.filter==='saved')return s.saved;
+        return true;
+      });
+    }
+    function renderOverview(){
+      const list=filteredSpots().map((s,i)=>`<button class="spot-card ${state.must.has(s.id)?'selected':''}" data-spot="${s.id}"><span class="thumb" style="background-image:url('${s.img}')"></span><span class="map-index">${i+1}</span><span class="spot-main"><span class="spot-title">${s.name}</span><span class="spot-meta"><span class="tag hot">${s.score}</span><span class="tag fit">${s.match}</span></span><span class="spot-meta">${s.region} · 距市区 ${distanceFor(s.id)}${s.saved?' · 已收藏':''}</span></span><span class="choice-dot">${state.must.has(s.id)?'✓':'+'}</span></button>`).join('');
+      return header('腾冲一图看懂','先选最多 3 个必去点，其余交给路线方案','<button class="text-btn cyan" data-action="why-rank">排序依据</button>')+`
+        <div class="tabs"><button class="tab ${state.filter==='all'?'active':''}" data-filter="all">全部景点</button><button class="tab ${state.filter==='fit'?'active':''}" data-filter="fit">适合你</button><button class="tab ${state.filter==='saved'?'active':''}" data-filter="saved">已收藏</button></div>
+        <div class="content"><div class="spot-list">${list}</div></div>
+        ${actions('手动规划','manual','一键 AI 规划<span class="inline-count">已选 '+state.must.size+'/3 个必去点</span>','to-transport')}`;
+    }
+    function distanceFor(id){return ({heshun:'6 km',resea:'12 km',wetland:'15 km',volcano:'28 km',memorial:'2 km',waterfall:'3 km',ginkgo:'37 km'})[id]}
+    function renderTransport(){
+      const modes=[
+        {id:'car',icon:'🚙',name:'租车自驾',rec:'70% 旅客选择',stats:['约 ¥180–260/天','景点覆盖 96%'],desc:'腾冲景点分散，4 天 3 晚多人同行时最省时间。和顺古镇建议停外围。',trade:'需要驾驶；热海、古镇停车需预留时间'},
+        {id:'taxi',icon:'🚕',name:'打车＋约车',rec:'最省心',stats:['全程约 ¥620–820','无需停车'],desc:'适合不想开车的人；市区、和顺方便，北海湿地回程需要提前预约。',trade:'偏远点候车不稳定，跨区成本更高'},
+        {id:'bus',icon:'🚌',name:'公交＋专线',rec:'预算友好',stats:['全程约 ¥80–150','景点覆盖 68%'],desc:'市区、和顺、热海可达；火山与北海湿地班次有限，需要围绕时刻表排日程。',trade:'等待时间长，路线弹性最低'}
+      ];
+      return header('当地怎么走','先选主交通，短距离仍会默认步行','<button class="text-btn" data-action="transport-data">数据说明</button>')+`
+        <div class="content"><div class="banner cyan"><b>结合你们 3 人同行 + 4 天 + 不早起</b><p>租车综合时间与人均成本最优，但怎么走仍由你选择。</p></div><div class="transport-list">${modes.map(m=>`<button class="transport-card ${state.transport===m.id?'selected':''}" data-transport="${m.id}"><span class="card-top"><span class="card-name"><span class="mode-icon">${m.icon}</span><span><b>${m.name}</b><span class="recommend">${m.rec}</span></span></span><span class="choice-dot">${state.transport===m.id?'✓':''}</span></span><span class="stats">${m.stats.map(x=>`<span class="stat">${x}</span>`).join('')}</span><p class="card-desc">${m.desc}</p><div class="tradeoff">注意：${m.trade}</div></button>`).join('')}</div></div>
+        ${actions('返回看景点','back','确认交通方式','confirm-anchors')}`;
+    }
+    function renderRoutes(){
+      const routes=[
+        {id:'balanced',name:'均衡多看',badge:'推荐',color:'#14aee3',m:['12 个点','日均 2.8h','¥1,680/人'],sum:'覆盖古镇、湿地、火山、温泉与历史文化；每天一个片区，整体不折返。',fit:'适合：第一次来、希望尽量完整'},
+        {id:'relaxed',name:'轻松少走',badge:'不早起友好',color:'#14aee3',m:['8 个点','日均 1.6h','¥1,520/人'],sum:'去掉银杏村与两个次要城市点，上午 10 点左右出发，留更多泡汤和吃饭时间。',fit:'适合：带长辈、重视休息与体验'},
+        {id:'theme',name:'自然与在地文化',badge:'为你定制',color:'#14aee3',m:['10 个点','日均 2.2h','¥1,610/人'],sum:'根据你注册时的自然、手工艺、地方饮食偏好，弱化普通打卡点。',fit:'适合：愿意少打卡、希望更像自己的旅行'}
+      ];
+      return header('先选路线方向','方案不是最终答案，下一步仍可逐点修改','<button class="text-btn cyan" data-action="compare-routes">对比</button>')+`
+        <div class="content"><div class="route-list">${routes.map(r=>`<button class="route-card ${state.route===r.id?'selected':''}" data-route="${r.id}"><span class="card-top"><span><b>${r.name}</b> <span class="recommend">${r.badge}</span></span><span class="choice-dot">${state.route===r.id?'✓':''}</span></span><span class="mini-map"><svg class="mini-route" viewBox="0 0 300 72"><path d="M18 55 C70 58 65 18 120 30 S185 55 220 18 282 35 288 12" fill="none" stroke="${r.color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${r.id==='theme'?'4 5':'0'}"/></svg></span><span class="route-metrics">${r.m.map((x,i)=>`<span class="metric"><b>${x}</b><span>${['覆盖','移动','预算'][i]}</span></span>`).join('')}</span><p class="route-summary">${r.sum}</p><div class="route-fit">${r.fit}</div></button>`).join('')}</div></div>
+        ${actions('调整条件','back','生成详细计划','to-detail')}`;
+    }
+    function renderDetail(){
+      const days=[['D1','和顺'],['D2','火山'],['D3','湿地'],['D4','市区']];
+      const plans=[
+        {title:'落地和顺，侨乡慢游',sum:'机场 → 和顺古镇 → 野鸭湖日落 → 古镇住宿',events:[['11:20','抵达腾冲驼峰机场','取车约 35 分钟','¥220/天'],['13:00','和顺古镇','午餐后慢逛，住在古镇内','步行 2.6 km'],['17:40','野鸭湖日落','光线最佳窗口 17:30–18:20','免费']]},
+        {title:'火山地貌，温泉收尾',sum:'住宿 → 火山公园 → 北海湿地 → 热海温泉',events:[['10:00','火山地质公园','风大时热气球可能停飞','车程 48 分'],['14:10','北海湿地','竹筏与栈道二选一','车程 31 分'],['17:30','热海温泉','晚间泡汤，避免空腹','需预约']]},
+        {title:'历史记忆，城市自然',sum:'国殇墓园 → 滇西抗战纪念馆 → 叠水河 → 热海',events:[['09:40','国殇墓园','周一闭馆，当前为周日','免费'],['10:50','滇西抗战纪念馆','建议提前预约','步行 13 分'],['14:30','叠水河瀑布','午后易见彩虹','车程 21 分']]},
+        {title:'古镇收尾，从容返程',sum:'古镇手工艺 → 市区午餐 → 机场',events:[['10:00','和顺手工艺店','购物与寄送预留 1 小时','步行'],['13:20','市区午餐','距离机场约 25 分钟','人均 ¥70'],['16:30','前往驼峰机场','为还车和值机预留时间','航班 19:45']]}
+      ];
+      const p=plans[state.day];
+      return header('你的腾冲 4 日计划','参考方案 · 所有点都可继续调整','<button class="text-btn cyan" data-action="show-overview">空间总览</button>')+`
+        <div class="content"><div class="day-strip">${days.map((d,i)=>`<button class="day-chip ${state.day===i?'active':''}" data-day="${i}"><b>${d[0]}</b><span>${d[1]}</span></button>`).join('')}</div>
+        <div class="day-overview"><div class="row"><b>${p.title}</b><span class="tag fit">${state.route==='balanced'?'均衡':'已适配'}</span></div><p>${p.sum}</p></div>
+        <div class="timeline">${p.events.map(e=>`<div class="event ${state.deleted&&e[1]==='北海湿地'?'deleted':''}"><span class="event-time">${e[0]}</span><button class="event-card" data-event="${e[1]}"><b>${e[1]}</b><p>${e[2]}</p><span class="event-meta"><span>${e[3]}</span>${e[1]==='火山地质公园'?'<span class="risk">天气风险</span>':''}${e[1]==='北海湿地'?'<span class="tag fit">点击体验编辑</span>':''}</span></button></div>`).join('')}</div>
+        <div class="banner"><b>AI 事实检查</b><p>国殇墓园避开周一闭馆；热海建议提前预约；返程已预留还车与值机时间。景区开放与交通价格仍需出发前复核。</p></div></div>
+        ${actions('问 AI 调整','ask-ai','编辑当前计划','manual-edit')}`;
+    }
+    function escapeHtml(value){return String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
+    function buildAiReply(text){
+      const prompt=text.toLowerCase();
+      if(prompt.includes('d2')&&(prompt.includes('不赶')||prompt.includes('轻松')))return '<b>调整预览 · D2 降低强度</b>\n10:30 火山公园（只走核心步道）→ 14:00 北海湿地 → 17:10 热海。\n\n预计少走 2.1 km、少开 35 分钟；三个核心体验都保留。住宿与 D4 19:45 返程不变。要应用这个版本吗？';
+      if(prompt.includes('北海湿地')&&prompt.includes('下午'))return '<b>调整预览 · 北海湿地改到下午</b>\nD2 顺序改为：火山公园 → 午餐 → 北海湿地 → 热海。北海湿地建议 14:00–16:00，仍然顺路，不新增折返。\n\n当前只生成预览，确认后我再更新计划。';
+      if(prompt.includes('雨')||prompt.includes('下雨'))return '<b>备选预览 · 雨天方案</b>\n把 D3 的纪念馆与市区内容作为雨天日；火山、湿地根据逐小时天气与 D3 互换。\n\n酒店、租车和返程航班都不动，出发前一天再提醒你确认。';
+      if(prompt.includes('不去')||prompt.includes('删除'))return '<b>删除影响预览</b>\n可以直接删掉这个点，不会自动补入新景点。我会只重算剩余地点的空间顺序，并告诉你空出的时间和减少的车程。请再告诉我是哪个景点。';
+      return '<b>我先按当前计划计算了一版</b>\n我会保留租车、不早起、D1 和顺住宿和 D4 19:45 返程这四个硬约束，只调整你提到的日期、时段或空间顺序。\n\n你可以再具体一点，例如“D3 下午删掉叠水河”。';
+    }
+    function submitAiPrompt(value){
+      const text=String(value||'').trim();if(!text)return;
+      state.chatMessages.push({role:'user',text},{role:'ai',text:buildAiReply(text)});render();
+      setTimeout(()=>{const c=document.querySelector('.chat-content');if(c)c.scrollTop=c.scrollHeight},30);
+    }
+    function renderChat(){
+      const days=[
+        ['D1 和顺古镇','机场 → 和顺古镇 → 野鸭湖日落'],
+        ['D2 火山与湿地','火山公园 → 北海湿地 → 热海'],
+        ['D3 城市人文','国殇墓园 → 抗战纪念馆 → 叠水河'],
+        ['D4 和顺手工艺','市区午餐 → 还车 → 19:45返程']
+      ];
+      return header('问 AI 调整','AI 已读取当前计划，不会直接覆盖','<button class="text-btn" data-action="back">返回计划</button>')+`
+        <div class="content chat-content">
+          <section class="chat-context"><div class="chat-context-head"><b>当前 4 天计划</b><span>上下文已载入</span></div><div class="context-days">${days.map(day=>`<div class="context-day"><b>${day[0]}</b>${day[1]}</div>`).join('')}</div><div class="constraint-strip"><span>🚗 租车</span><span>☀️ 不早起</span><span>🏡 D1 和顺住宿</span><span>✈️ D4 19:45返程</span></div></section>
+          <div class="chat-thread">${state.chatMessages.map(message=>`<div class="chat-message ${message.role}">${escapeHtml(message.text).replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/g,'<b>$1</b>')}</div>`).join('')}</div>
+          <div class="prompt-chips"><button class="prompt-chip" data-prompt="D2 不要太赶，但保留北海湿地">D2 不要太赶</button><button class="prompt-chip" data-prompt="把北海湿地改到下午去">北海湿地改到下午</button><button class="prompt-chip" data-prompt="准备一个下雨天的备选方案">准备雨天方案</button></div>
+        </div>
+        <div class="chat-composer"><input class="chat-input" id="aiChatInput" autocomplete="off" placeholder="例如：D3 下午删掉叠水河"><button class="chat-send" data-action="send-chat" aria-label="发送">↑</button></div>`;
+    }
+    function renderEdit(){
+      const impact = state.editDecision==='no'
+        ? {cls:'danger',title:'删除后不自动补点',body:'D2 将空出约 2.5 小时。热海可提前到 15:20，AI只重算剩余路线，不会擅自加入新景点。'}
+        : state.editOrder==='我来排序'
+        ? {cls:'warn',title:'当前顺序会多走 38 分钟',body:'先去热海再回北海湿地会形成折返。你仍可保存，或改用“AI顺路”。'}
+        : {cls:'good',title:'调整后仍然顺路',body:`北海湿地安排在 ${state.editDay} ${state.editTime}，位于火山与热海之间，预计减少 22 km 折返。`};
+      return header('编辑 · 北海湿地','只改你选择的维度，保存前先看影响','<button class="text-btn" data-action="close-edit">取消</button>')+`
+        <div class="content"><div class="edit-hero"><span class="thumb" style="background-image:url('${spots[2].img}')"></span><span><b>北海湿地</b><p>城北高原湿地 · 适合你 96%<br>已收藏 · 当前安排 D2 14:10</p></span></div>
+        <div class="decision"><button class="${state.editDecision==='go'?'active':''}" data-decision="go">去</button><button class="no ${state.editDecision==='no'?'active':''}" data-decision="no">不去，直接删除</button></div>
+        ${state.editDecision==='go'?`<div class="form-block"><div class="form-label">改到哪天 <small>住宿与航班是固定锚点</small></div><div class="option-row">${['10.23','10.24','10.25','10.26'].map(x=>`<button class="option ${state.editDay===x?'active':''}" data-edit-day="${x}">${x}</button>`).join('')}</div></div>
+        <div class="form-block"><div class="form-label">什么时段</div><div class="option-row">${['上午','下午','晚上'].map(x=>`<button class="option ${state.editTime===x?'active':''}" data-edit-time="${x}">${x}</button>`).join('')}</div></div>
+        <div class="form-block"><div class="form-label">空间顺序 <small>你决定，AI只给影响</small></div><div class="option-row">${['AI顺路','火山之后','热海之后','我来排序'].map(x=>`<button class="option ${state.editOrder===x?'active':''}" data-edit-order="${x}">${x}</button>`).join('')}</div></div>`:''}
+        <div class="impact ${impact.cls}"><b>${impact.title}</b><p>${impact.body}</p></div></div>
+        ${actions('返回计划','close-edit',state.editDecision==='no'?'确认删除':'保存修改','save-edit')}`;
+    }
+    function renderManual(){
+      return header('手动规划工作台','你选择点和日期，AI帮你计算顺路','<button class="text-btn cyan" data-action="ai-order">AI 帮我顺路</button>')+`
+        <div class="content"><div class="banner cyan"><b>未安排收藏 · 5 个</b><p>从小红书导入的地点先放在这里，拖入某天或点“＋加入”。</p></div>
+        <div class="manual-pool">${spots.filter(s=>s.saved).slice(0,4).map(s=>`<div class="pool-card"><b>${s.name}</b><span>${s.region}</span><button data-pool="${s.id}">＋ 加入某天</button></div>`).join('')}</div>
+        <div class="day-overview"><div class="row"><b>D1 · 和顺片区</b><span class="tag fit">2 个点</span></div><p>和顺古镇 → 野鸭湖日落 · 区内步行</p></div>
+        <div class="day-overview"><div class="row"><b>D2 · 城北片区</b><span class="tag">待安排</span></div><p>火山、北海湿地、热海可组合；当前尚未确认顺序。</p></div>
+        <div class="banner"><b>手动不等于从零填表</b><p>你负责“去哪里、放哪天”；AI负责计算距离、营业时间冲突和建议顺序。</p></div></div>
+        ${actions('返回一图看懂','back','预览我的路线','manual-preview')}`;
+    }
+    function render(){
+      device.classList.toggle('is-chat',state.screen==='chat');
+      updateMap();renderPins();
+      const html=state.screen==='import'?renderImport():state.screen==='overview'?renderOverview():state.screen==='transport'?renderTransport():state.screen==='routes'?renderRoutes():state.screen==='detail'?renderDetail():state.screen==='chat'?renderChat():state.screen==='edit'?renderEdit():renderManual();
+      screenContent.classList.remove('entering');
+      screenContent.innerHTML=html;
+      requestAnimationFrame(()=>screenContent.classList.add('entering'));
+      if(amapState.ready)requestAnimationFrame(()=>{amapState.map.resize();fitAmapView()});
+      document.getElementById('backBtn').style.visibility=(state.screen==='import'&&state.history.length===0)?'hidden':'visible';
+    }
+
+    document.getElementById('backBtn').addEventListener('click',goBack);
+    document.getElementById('resetBtn').addEventListener('click',reset);
+    document.getElementById('snackbarAction').addEventListener('click',()=>{state.deleted=false;hideSnack();setScreen('detail',false)});
+    mapStage.addEventListener('click',e=>{
+      const control=e.target.closest('[data-map-control]');if(!control)return;
+      if(amapState.ready){if(control.dataset.mapControl==='in')amapState.map.zoomIn();if(control.dataset.mapControl==='out')amapState.map.zoomOut();if(control.dataset.mapControl==='fit')fitAmapView();return}
+      if(control.dataset.mapControl==='in')zoomMap(.3);if(control.dataset.mapControl==='out')zoomMap(-.3);if(control.dataset.mapControl==='fit')resetMapView(true);
+    });
+    mapProvider.addEventListener('click',showAmapConfig);
+    mapCanvas.addEventListener('wheel',e=>{e.preventDefault();zoomMap(e.deltaY<0?.2:-.2)},{passive:false});
+    mapCanvas.addEventListener('pointerdown',e=>{
+      mapPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});mapCanvas.setPointerCapture(e.pointerId);mapCanvas.classList.add('is-dragging');mapHint.classList.add('hide');
+      if(mapPointers.size===1){mapGesture={startX:e.clientX,startY:e.clientY,originX:mapView.x,originY:mapView.y,distance:0,scale:mapView.scale,moved:false}}
+      if(mapPointers.size===2){const p=[...mapPointers.values()];mapGesture.distance=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);mapGesture.scale=mapView.scale}
+    });
+    mapCanvas.addEventListener('pointermove',e=>{
+      if(!mapPointers.has(e.pointerId))return;mapPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(mapPointers.size===2){const p=[...mapPointers.values()];const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);if(mapGesture.distance){mapView.scale=Math.max(.85,Math.min(2.4,mapGesture.scale*d/mapGesture.distance));mapGesture.moved=true;applyMapTransform()}}
+      else{const dx=e.clientX-mapGesture.startX,dy=e.clientY-mapGesture.startY;if(Math.hypot(dx,dy)>4)mapGesture.moved=true;mapView.x=mapGesture.originX+dx;mapView.y=mapGesture.originY+dy;applyMapTransform()}
+    });
+    function endMapPointer(e){mapPointers.delete(e.pointerId);if(!mapPointers.size)mapCanvas.classList.remove('is-dragging')}
+    mapCanvas.addEventListener('pointerup',endMapPointer);mapCanvas.addEventListener('pointercancel',endMapPointer);
+    modal.addEventListener('click',e=>{if(e.target===modal)hideModal()});
+    pinLayer.addEventListener('click',e=>{const p=e.target.closest('[data-pin]');if(!p||mapGesture.moved){mapGesture.moved=false;return}openSpotModal(spots.find(x=>x.id===p.dataset.pin))});
+    screenContent.addEventListener('click',e=>{
+      const a=e.target.closest('[data-action]');
+      if(a){
+        const action=a.dataset.action;
+        if(action==='back')goBack();
+        if(action==='skip-import'||action==='import-notes'){state.imported=action==='import-notes';setScreen('overview');if(state.imported)showSnack('已导入旅行收藏池，不会自动塞入某一天',false)}
+        if(action==='open-source')showModal('<h3>收藏来源预览</h3><p>这里会展示原笔记标题、作者、识别到的地点，以及地点匹配置信度。Demo 中仅演示导入逻辑。</p><button class="btn primary" style="width:100%" data-modal="close">知道了</button>'),setTimeout(()=>{const b=document.querySelector('[data-modal="close"]');if(b)b.onclick=hideModal},0);
+        if(action==='why-rank')showModal('<h3>排序不是单一热度榜</h3><p><b>全网综合</b>：UGC 提及、评分、近期热度与季节适配。<br><b>适合你</b>：自然、文化、美食偏好与同行人、体力节奏。<br><b>已收藏</b>：你明确表达过兴趣的内容。</p><button class="btn primary" style="width:100%" data-modal="close">知道了</button>'),setTimeout(()=>document.querySelector('[data-modal="close"]').onclick=hideModal,0);
+        if(action==='manual')setScreen('manual');
+        if(action==='to-transport')setScreen('transport');
+        if(action==='transport-data')showModal('<h3>交通建议如何得出</h3><p>基于景点分布、同行人数、4 天行程、出发节奏与当地可达性估算。价格为参考区间，最终以实时平台为准。</p><button class="btn primary" style="width:100%" data-modal="close">知道了</button>'),setTimeout(()=>document.querySelector('[data-modal="close"]').onclick=hideModal,0);
+        if(action==='confirm-anchors')showAnchors();
+        if(action==='compare-routes')showModal('<h3>三方案只改变“旅行性格”</h3><p>必去点、住宿和航班不会被改动。差异主要来自景点数量、每天启动时间、跨区距离与主题偏好。</p><button class="btn primary" style="width:100%" data-modal="close">知道了</button>'),setTimeout(()=>document.querySelector('[data-modal="close"]').onclick=hideModal,0);
+        if(action==='to-detail')setScreen('detail');
+        if(action==='show-overview')showSnack('地图已显示 D1–D4 分区：西南 → 北部 → 市区 → 机场',false);
+        if(action==='ask-ai')setScreen('chat');
+        if(action==='send-chat')submitAiPrompt(document.getElementById('aiChatInput')?.value);
+        if(action==='manual-edit')setScreen('edit');
+        if(action==='close-edit')goBack();
+        if(action==='save-edit'){if(state.editDecision==='no'){state.deleted=true;state.day=1;setScreen('detail');showSnack('已删除北海湿地；没有自动补入其他景点',true)}else{state.day=1;setScreen('detail');showSnack(`已调整至 ${state.editDay} ${state.editTime} · ${state.editOrder}`,false)}}
+        if(action==='ai-order'){state.route='balanced';showSnack('已按住宿与全程距离生成顺路预览，尚未替你保存',false)}
+        if(action==='manual-preview')setScreen('routes');
+      }
+      const f=e.target.closest('[data-filter]');if(f){state.filter=f.dataset.filter;render()}
+      const s=e.target.closest('[data-spot]');if(s)toggleMust(s.dataset.spot);
+      const t=e.target.closest('[data-transport]');if(t){state.transport=t.dataset.transport;render()}
+      const r=e.target.closest('[data-route]');if(r){state.route=r.dataset.route;render()}
+      const d=e.target.closest('[data-day]');if(d){state.day=+d.dataset.day;render()}
+      const ev=e.target.closest('[data-event]');if(ev&&ev.dataset.event==='北海湿地')setScreen('edit');
+      const dec=e.target.closest('[data-decision]');if(dec){state.editDecision=dec.dataset.decision;render()}
+      const ed=e.target.closest('[data-edit-day]');if(ed){state.editDay=ed.dataset.editDay;render()}
+      const et=e.target.closest('[data-edit-time]');if(et){state.editTime=et.dataset.editTime;render()}
+      const eo=e.target.closest('[data-edit-order]');if(eo){state.editOrder=eo.dataset.editOrder;render()}
+      const prompt=e.target.closest('[data-prompt]');if(prompt)submitAiPrompt(prompt.dataset.prompt);
+      const pool=e.target.closest('[data-pool]');if(pool)showModal('<h3>加入哪一天？</h3><p>选择日期后，地点会进入当天“待排序区”，不会立刻改变其他点。</p><div class="option-row">'+['10.23','10.24','10.25','10.26'].map(x=>`<button class="option" data-pool-day="${x}">${x}</button>`).join('')+'</div>'),setTimeout(()=>document.querySelectorAll('[data-pool-day]').forEach(b=>b.onclick=()=>{hideModal();showSnack('已加入 '+b.dataset.poolDay+' 待排序区',false)}),0);
+    });
+    screenContent.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='aiChatInput'){e.preventDefault();submitAiPrompt(e.target.value)}});
+    function toggleMust(id){
+      state.focusSpot=id;
+      if(state.must.has(id))state.must.delete(id);else if(state.must.size<3)state.must.add(id);else{showSnack('最多选择 3 个必去点，避免方案失去取舍',false);return}render();
+    }
+    function showAnchors(){
+      showModal(`<h3>两个锚点确认</h3><p>住宿与往返交通一旦确定，会成为路线不可移动的硬约束。</p><div class="anchor-grid"><div class="anchor-card"><b>住宿定了吗？</b><p>已识别：D1 和顺古镇<br>D2–D3 市区酒店</p><div class="segmented"><button class="segment ${state.hotel==='yes'?'active':''}" data-anchor="hotel:yes">定了</button><button class="segment ${state.hotel==='no'?'active':''}" data-anchor="hotel:no">没定</button></div></div><div class="anchor-card"><b>往返交通定了吗？</b><p>去程 11:20 抵达<br>返程时间尚未确认</p><div class="segmented"><button class="segment ${state.flight==='yes'?'active':''}" data-anchor="flight:yes">定了</button><button class="segment ${state.flight==='no'?'active':''}" data-anchor="flight:no">没定</button></div></div></div><div class="constraint"><span>节奏：不早起 · 3 人同行</span><button data-anchor="pace">可修改</button></div><button class="btn primary" style="width:100%;margin-top:13px" data-anchor="continue">生成 3 个路线方向</button>`);
+      document.querySelectorAll('[data-anchor]').forEach(b=>b.onclick=()=>{const v=b.dataset.anchor;if(v==='continue'){hideModal();setScreen('routes');return}if(v==='pace'){showSnack('当前节奏：每天 10:00 左右出发',false);return}const [k,val]=v.split(':');state[k]=val;showAnchors()});
+    }
+    render();
+    initAmap(readAmapConfig()||DEFAULT_AMAP_CONFIG);
+  </script>
+</body>
+</html>
